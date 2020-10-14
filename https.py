@@ -2,6 +2,7 @@ import socket
 import sys
 import os
 import datetime
+import time
 """
 HTTP/1.1 200 OK
 Date: Mon, 12 Oct 2020 06:35:24 GMT
@@ -37,7 +38,7 @@ def response_line(status_code):
     reason = status_codes[status_code]
     return "HTTP/1.1 %s %s\r\n" % (status_code, reason)
 
-def response_headers(l = None):
+def response_headers(l = None, filename = None):
     """Returns headers
     The `extra_headers` can be a dict for sending 
     extra headers for the current response
@@ -51,6 +52,8 @@ def response_headers(l = None):
     for h in headers:
         if(h == 'Content-Length'):
             header += "%s: %s\r\n" % (h, l)
+        elif(h == 'Last-Modified'):
+            header += "%s: %s\r\n" % (h, time.ctime(os.path.getmtime(filename)))
         else:
             header += "%s: %s\r\n" % (h, headers[h])
     return header
@@ -104,7 +107,7 @@ def GET(uri):
         with open(filename) as f:
             response_body = f.read()
         l = len(response_body)
-        responseheaders = response_headers(l)
+        responseheaders = response_headers(l, filename)
         
     else:
         responseline = response_line(404)
