@@ -31,6 +31,7 @@ status_codes = {
         404: 'Not Found',
         501: 'Not Implemented',
         400: 'Bad Request',
+        201: 'Created',
          }
 
 def response_line(status_code):
@@ -52,8 +53,8 @@ def response_headers(l = None, filename = None):
     for h in headers:
         if(h == 'Content-Length'):
             header += "%s: %s\r\n" % (h, l)
-        elif(h == 'Last-Modified'):
-            header += "%s: %s\r\n" % (h, time.ctime(os.path.getmtime(filename)))
+        # elif(h == 'Last-Modified'):
+            # header += "%s: %s\r\n" % (h, time.ctime(os.path.getmtime(filename)))
         else:
             header += "%s: %s\r\n" % (h, headers[h])
     return header
@@ -160,6 +161,30 @@ def HEAD(uri):
             blank_line, 
         )
 
+def PUT(uri):
+    filename = uri.strip('/')
+    if(os.path.isfile(filename) == False):
+        f = open(filename,"w+")
+        response_body = ""
+        if(f):
+            response_body += "<h1>The file was created.</h1>\n"
+        blank_line = "\r\n"
+        responseline = response_line(201)
+        responseheaders = response_headers(len(response_body))
+    else:
+        blank_line = "\r\n"
+        responseline = response_line(200)
+        response_body = ""
+        responseheaders = response_headers(len(response_body))
+    return "%s%s%s%s" % (
+            responseline, 
+            responseheaders, 
+            blank_line, 
+            response_body
+        )
+
+
+
 def HTTPRequest(data):
     http_version = '1.1' # default to HTTP/1.1 if request doesn't provide a version
     headers = {} # a dictionary for headers
@@ -178,7 +203,7 @@ def HTTPRequest(data):
 def handle_request(data):
     data = data.decode()
     print(data)
-    print("\n\n\n")
+    print("")
     method, uri, http_version = HTTPRequest(data)
     if(method == 'GET'):
         if(uri == None):
@@ -189,6 +214,8 @@ def handle_request(data):
         response = HEAD(uri)
     elif(method == 'POST'):
         response = POST(uri, data)
+    elif(method == 'PUT'):
+        response = PUT(uri)
     else:
          response = HTTP_501_handler(uri)
     return response
