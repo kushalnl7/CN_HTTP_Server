@@ -32,6 +32,7 @@ status_codes = {
         501: 'Not Implemented',
         400: 'Bad Request',
         201: 'Created',
+        202: 'Accepted',
          }
 
 def response_line(status_code):
@@ -39,7 +40,7 @@ def response_line(status_code):
     reason = status_codes[status_code]
     return "HTTP/1.1 %s %s\r\n" % (status_code, reason)
 
-def response_headers(l = None, filename = None):
+def response_headers(l = None, date = None, filename = None):
     """Returns headers
     The `extra_headers` can be a dict for sending 
     extra headers for the current response
@@ -55,6 +56,8 @@ def response_headers(l = None, filename = None):
             header += "%s: %s\r\n" % (h, l)
         # elif(h == 'Last-Modified'):
             # header += "%s: %s\r\n" % (h, time.ctime(os.path.getmtime(filename)))
+        elif(h == 'Date' and date != None):
+            header += date
         else:
             header += "%s: %s\r\n" % (h, headers[h])
     return header
@@ -69,7 +72,8 @@ def HTTP_400_Handler():
     responseheaders = response_headers(l)
     blank_line = "\r\n"
     
-    return "%s%s%s%s" % (
+    return "%s%s%s%s%s" % (
+        blank_line,
         responseline,
         responseheaders,
         blank_line,
@@ -83,7 +87,8 @@ def HTTP_501_handler(uri):
     response_body = "<h1>501 Not Implemented</h1>\n"
     l = len(response_body)
     responseheaders = response_headers(l)
-    return "%s%s%s%s" % (
+    return "%s%s%s%s%s" % (
+            blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -95,7 +100,8 @@ def OPTIONS(uri):
     extra_headers = {'Allow': 'OPTIONS, GET'}
     responseheaders = response_headers()
     blank_line = "\r\n"
-    return "%s%s%s" % (
+    return "%s%s%s%s" % (
+            blank_line,
             responseline, 
             responseheaders,
             blank_line
@@ -108,15 +114,26 @@ def GET(uri):
         with open(filename) as f:
             response_body = f.read()
         l = len(response_body)
-        responseheaders = response_headers(l, filename)
+        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+        logtext = '%s - - [%s] "GET %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
+        date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
+        responseheaders = response_headers(l, date, filename)
+        
         
     else:
         responseline = response_line(404)
-        response_body = "<h1>404 Not Found</h1>\n"
+        response_body = "<h1>404 Not Found</h1>responseheaders = response_headers(len(response_body))\n"
         l = len(response_body)
+        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+        logtext = '%s - - [%s] "GET %s HTTP/1.1" 400 0 "-" "-" \r\n' % (host, date, filename)
         responseheaders = response_headers(l)
     blank_line = "\r\n"
-    return "%s%s%s%s" % (
+    
+    
+    with open("access.log", "a") as myfile:
+        myfile.write(logtext)
+    return "%s%s%s%s%s" % (
+            blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -133,7 +150,8 @@ def POST(uri, data):
     response_body = ""
     for i in k:
         response_body += str(i) + "\r\n"
-    return "%s%s%s%s" % (
+    return "%s%s%s%s%s" % (
+            blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -147,24 +165,35 @@ def HEAD(uri):
         with open(filename) as f:
             response_body = f.read()
         l = len(response_body)
-        responseheaders = response_headers(l)
+        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+        logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
+        date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
+        responseheaders = response_headers(l, date)
         
     else:
         responseline = response_line(404)
         response_body = "<h1>404 Not Found</h1>\n"
         l = len(response_body)
+        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+        logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 400 0 "-" "-" \r\n' % (host, date, filename)
         responseheaders = response_headers(l)
     blank_line = "\r\n"
-    return "%s%s%s" % (
+
+    with open("access.log", "a") as myfile:
+        myfile.write(logtext)
+    return "%s%s%s%s" % (
+            blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
         )
 
-def PUT(uri):
+def PUT(uri, data):
+    data = data.split('\r\n')[-1]
     filename = uri.strip('/')
     if(os.path.isfile(filename) == False):
         f = open(filename,"w+")
+        f.write(data)
         response_body = ""
         if(f):
             response_body += "<h1>The file was created.</h1>\n"
@@ -172,18 +201,43 @@ def PUT(uri):
         responseline = response_line(201)
         responseheaders = response_headers(len(response_body))
     else:
+        f = open(filename,"w+")
+        f.write(data)
         blank_line = "\r\n"
         responseline = response_line(200)
         response_body = ""
         responseheaders = response_headers(len(response_body))
-    return "%s%s%s%s" % (
+
+    """ 204 No Content Status Code Pending """
+    return "%s%s%s%s%s" % (
+            blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
             response_body
         )
 
-
+def DELETE(uri):
+    filename = uri.strip('/')
+    if(os.path.isfile(filename) == False):
+        """ Not Sure about 202"""
+        responseline = response_line(202)
+        response_body = ""
+        responseheaders = response_headers(len(response_body))
+    else:
+        os.remove(filename)
+        responseline = response_line(200)
+        response_body = "<html><body><h1>File deleted.</h1></body></html>"
+        responseheaders = response_headers(len(response_body))
+    blank_line = "\r\n"
+    """ 204 No Content Status Code Pending """
+    return "%s%s%s%s%s" % (
+            blank_line,
+            responseline, 
+            responseheaders, 
+            blank_line, 
+            response_body
+        )
 
 def HTTPRequest(data):
     http_version = '1.1' # default to HTTP/1.1 if request doesn't provide a version
@@ -202,8 +256,8 @@ def HTTPRequest(data):
 
 def handle_request(data):
     data = data.decode()
-    print(data)
-    print("")
+        # print(data)
+    # print("")
     method, uri, http_version = HTTPRequest(data)
     if(method == 'GET'):
         if(uri == None):
@@ -215,7 +269,9 @@ def handle_request(data):
     elif(method == 'POST'):
         response = POST(uri, data)
     elif(method == 'PUT'):
-        response = PUT(uri)
+        response = PUT(uri, data)
+    elif(method == 'DELETE'):
+        response = DELETE(uri)
     else:
          response = HTTP_501_handler(uri)
     return response
@@ -236,6 +292,7 @@ while True:
     conn, addr = s.accept()
     print("Connected by", addr)
     data = (conn.recv(1024))
+    print(data.decode().split('\r\n')[-1])
     response = handle_request(data)
     conn.sendall(bytes(response, 'utf-8'))
     conn.close()
