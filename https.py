@@ -16,6 +16,15 @@ Content-Type: text/html
 """
 
 x = datetime.datetime.now()
+# date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+x_day = x.strftime("%d")
+x_month = x.strftime("%b")
+x_nmonth = x.strftime("%m")
+x_year = x.strftime("%Y")
+x_hour = x.strftime("%H")
+x_min = x.strftime("%M")
+x_sec = x.strftime("%S")
+
 headers = {
         'Date': "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S")),
         'Server': 'CrudeServer',
@@ -33,6 +42,7 @@ status_codes = {
         400: 'Bad Request',
         201: 'Created',
         202: 'Accepted',
+        304: 'Not Modified',
          }
 
 def response_line(status_code):
@@ -41,15 +51,6 @@ def response_line(status_code):
     return "HTTP/1.1 %s %s\r\n" % (status_code, reason)
 
 def response_headers(l = None, date = None, filename = None):
-    """Returns headers
-    The `extra_headers` can be a dict for sending 
-    extra headers for the current response
-    """
-    #headers_copy = headers.copy() # make a local copy of headers
-
-    #if extra_headers:
-        #headers_copy.update(extra_headers)
-
     header = ""
     for h in headers:
         if(h == 'Content-Length'):
@@ -62,8 +63,33 @@ def response_headers(l = None, date = None, filename = None):
             header += "%s: %s\r\n" % (h, headers[h])
     return header
 
+def getdate(s):
+    k = []
+    p = s.split(" ")
+    for i in p:
+        if(len(i) == 3):
+            datetime_object = datetime.datetime.strptime(i, "%b")
+            m_num = datetime_object.month
+            k.append(int(m_num))
+        elif(len(i) == 8):
+            p1 = i.split(":")
+            k.append(int(p1[0]))
+            k.append(int(p1[1]))
+            k.append(int(p1[2]))
+        else:
+            k.append(int(i))
+    return k
 
-    
+def res_ifs(date):
+    N = getdate(date)
+    for h in headers:
+        if(h == "Last-Modified"):
+            M = getdate((headers[h])[5:25])
+            break
+    a = datetime.datetime(N[2], N[1], N[0], N[3], N[4], N[5])
+    b = datetime.datetime(M[2], M[1], M[0], M[3], M[4], M[5])
+    print(a>b)
+    return a>b
 
 def HTTP_400_Handler():
     responseline = response_line(status_code=400)
@@ -107,8 +133,13 @@ def OPTIONS(uri):
             blank_line
         )
 
-def GET(uri):
-    filename = uri.strip('/') # remove the slash from URI
+def GET(uri, data):
+    filename = uri.strip('/')
+    k = data.split("\r\n")
+    for i in k:
+        if("If-Modified-Since" in i):
+            # res_ifs(i[24:44])
+            pass
     if os.path.exists(filename):
         responseline = response_line(200)
         with open(filename) as f:
@@ -118,8 +149,6 @@ def GET(uri):
         logtext = '%s - - [%s] "GET %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
         date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
         responseheaders = response_headers(l, date, filename)
-        
-        
     else:
         responseline = response_line(404)
         response_body = "<h1>404 Not Found</h1>responseheaders = response_headers(len(response_body))\n"
@@ -158,7 +187,7 @@ def POST(uri, data):
             response_body
         )
     
-def HEAD(uri):
+def HEAD(uri, data):
     filename = uri.strip('/') # remove the slash from URI
     if os.path.exists(filename):
         responseline = response_line(200)
@@ -252,20 +281,18 @@ def HTTPRequest(data):
     if len(words) > 2:
         http_version = words[2]
     return method, uri, http_version
-    
+    res_ifs()
 
 def handle_request(data):
     data = data.decode()
-        # print(data)
-    # print("")
     method, uri, http_version = HTTPRequest(data)
     if(method == 'GET'):
         if(uri == None):
             response = HTTP_400_Handler()
         else:
-            response = GET(uri)
+            response = GET(uri, data)
     elif(method == 'HEAD'):
-        response = HEAD(uri)
+        response = HEAD(uri, data)
     elif(method == 'POST'):
         response = POST(uri, data)
     elif(method == 'PUT'):
@@ -292,7 +319,10 @@ while True:
     conn, addr = s.accept()
     print("Connected by", addr)
     data = (conn.recv(1024))
-    print(data.decode().split('\r\n')[-1])
+    # k = data.decode().split("\r\n")
+    # for i in k:
+    #     if("If-Modified-Since" in i):
+    #         print(i)
     response = handle_request(data)
     conn.sendall(bytes(response, 'utf-8'))
     conn.close()
