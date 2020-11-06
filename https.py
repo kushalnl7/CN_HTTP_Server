@@ -55,7 +55,15 @@ def response_headers(l = None,filename = None):
     for h in headers:
         if(h == 'Content-Length'):
             header += "%s: %s\r\n" % (h, l)
-        # elif(h == 'Last-Modified'):
+        elif(h == 'Last-Modified'):
+            if(filename != None):
+                k = time.ctime(os.path.getmtime(filename))
+                s = ""
+                if(int(k[9]) < 10):
+                    s += "0" + k[9]
+                else:
+                    s += k[9]
+                header += "%s: %s, %s %s %s %s GMT\r\n" % (h, k[0:3], s, k[4:7], k[20:24], k[11:19])
             # header += "%s: %s\r\n" % (h, time.ctime(os.path.getmtime(filename)))
         else:
             header += "%s: %s\r\n" % (h, headers[h])
@@ -78,14 +86,23 @@ def getdate(s):
             k.append(int(i))
     return k
 
-def res_ifs(date):
+def res_ifs(date, filename):
     N = getdate(date)
-    for h in headers:
-        if(h == "Last-Modified"):
-            M = getdate((headers[h])[5:25])
-            break
+    # for h in headers:
+    #     if(h == "Last-Modified"):
+    #         M = getdate((headers[h])[5:25])
+    #         break
+    k = time.ctime(os.path.getmtime(filename))
+    s = ""
+    if(int(k[9]) < 10):
+        s += "0" + k[9]
+    else:
+        s += k[9]
+    datetime_object = datetime.datetime.strptime(k[4:7], "%b")
+    m_num = datetime_object.month
+    b = datetime.datetime(int(k[20:24]), int(m_num), int(s), int(k[11:13]), int(k[14:16]), int(k[17:19]))
     a = datetime.datetime(N[2], N[1], N[0], N[3], N[4], N[5])
-    b = datetime.datetime(M[2], M[1], M[0], M[3], M[4], M[5])
+    # b = datetime.datetime(M[2], M[1], M[0], M[3], M[4], M[5])
     return a>b
 
 def HTTP_400_Handler():
@@ -136,7 +153,7 @@ def GET(uri, data):
     p = 0
     for i in k:
         if("If-Modified-Since" in i):
-            p = res_ifs(i[24:44])
+            p = res_ifs(i[24:44], filename)
     if(p):
         if os.path.exists(filename):
             responseline = response_line(304)
