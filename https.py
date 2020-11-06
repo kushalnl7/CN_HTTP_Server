@@ -50,15 +50,13 @@ def response_line(status_code):
     reason = status_codes[status_code]
     return "HTTP/1.1 %s %s\r\n" % (status_code, reason)
 
-def response_headers(l = None, date = None, filename = None):
+def response_headers(l = None,filename = None):
     header = ""
     for h in headers:
         if(h == 'Content-Length'):
             header += "%s: %s\r\n" % (h, l)
         # elif(h == 'Last-Modified'):
             # header += "%s: %s\r\n" % (h, time.ctime(os.path.getmtime(filename)))
-        elif(h == 'Date' and date != None):
-            header += date
         else:
             header += "%s: %s\r\n" % (h, headers[h])
     return header
@@ -88,7 +86,6 @@ def res_ifs(date):
             break
     a = datetime.datetime(N[2], N[1], N[0], N[3], N[4], N[5])
     b = datetime.datetime(M[2], M[1], M[0], M[3], M[4], M[5])
-    print(a>b)
     return a>b
 
 def HTTP_400_Handler():
@@ -136,29 +133,45 @@ def OPTIONS(uri):
 def GET(uri, data):
     filename = uri.strip('/')
     k = data.split("\r\n")
+    p = 0
     for i in k:
         if("If-Modified-Since" in i):
-            # res_ifs(i[24:44])
-            pass
-    if os.path.exists(filename):
-        responseline = response_line(200)
-        with open(filename) as f:
-            response_body = f.read()
-        l = len(response_body)
-        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-        logtext = '%s - - [%s] "GET %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
-        date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
-        responseheaders = response_headers(l, date, filename)
+            p = res_ifs(i[24:44])
+    if(p):
+        if os.path.exists(filename):
+            responseline = response_line(304)
+            response_body = ""
+            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+            l = len(response_body)
+            responseheaders = response_headers(l,filename)
+            logtext = '%s - - [%s] "GET %s HTTP/1.1" 304 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
+        else:
+            responseline = response_line(404)
+            response_body = "<h1>404 Not Found</h1>responseheaders = response_headers(len(response_body))\n"
+            l = len(response_body)
+            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+            logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+            responseheaders = response_headers(l)
+
     else:
-        responseline = response_line(404)
-        response_body = "<h1>404 Not Found</h1>responseheaders = response_headers(len(response_body))\n"
-        l = len(response_body)
-        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-        logtext = '%s - - [%s] "GET %s HTTP/1.1" 400 0 "-" "-" \r\n' % (host, date, filename)
-        responseheaders = response_headers(l)
+        if os.path.exists(filename):
+            responseline = response_line(200)
+            with open(filename) as f:
+                response_body = f.read()
+            l = len(response_body)
+            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+            logtext = '%s - - [%s] "GET %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
+            date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
+            responseheaders = response_headers(l, filename)
+        else:
+            responseline = response_line(404)
+            response_body = "<h1>404 Not Found</h1>responseheaders = response_headers(len(response_body))\n"
+            l = len(response_body)
+            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+            logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+            responseheaders = response_headers(l)
+
     blank_line = "\r\n"
-    
-    
     with open("access.log", "a") as myfile:
         myfile.write(logtext)
     return "%s%s%s%s%s" % (
@@ -197,14 +210,14 @@ def HEAD(uri, data):
         date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
         logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
         date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
-        responseheaders = response_headers(l, date)
+        responseheaders = response_headers(l)
         
     else:
         responseline = response_line(404)
         response_body = "<h1>404 Not Found</h1>\n"
         l = len(response_body)
         date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-        logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 400 0 "-" "-" \r\n' % (host, date, filename)
+        logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
         responseheaders = response_headers(l)
     blank_line = "\r\n"
 
