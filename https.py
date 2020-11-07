@@ -3,6 +3,7 @@ import sys
 import os
 import datetime
 import time
+from conf import *
 """
 HTTP/1.1 200 OK
 Date: Mon, 12 Oct 2020 06:35:24 GMT
@@ -34,6 +35,7 @@ headers = {
         'Content-Length': '10918',
         'Vary': 'Accept-Encoding',
         'Content-Type': 'text/html',
+        'Set-Cookie': 'yummy_cookie=choco',
           }
 status_codes = {
         200: 'OK',
@@ -65,6 +67,9 @@ def response_headers(l = None,filename = None):
                     s += k[9]
                 header += "%s: %s, %s %s %s %s GMT\r\n" % (h, k[0:3], s, k[4:7], k[20:24], k[11:19])
             # header += "%s: %s\r\n" % (h, time.ctime(os.path.getmtime(filename)))
+        elif(h == 'Set-Cokkie'):
+            for k in cokkies:
+                header += "%s: %s=%s\r\n" % (h, k, cokkies[k])
         else:
             header += "%s: %s\r\n" % (h, headers[h])
     return header
@@ -349,6 +354,7 @@ while True:
     conn, addr = s.accept()
     print("Connected by", addr)
     data = (conn.recv(1024))
+    print(data.decode())
     # k = data.decode().split("\r\n")
     # for i in k:
     #     if("If-Modified-Since" in i):
