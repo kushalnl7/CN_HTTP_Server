@@ -45,6 +45,7 @@ status_codes = {
         201: 'Created',
         202: 'Accepted',
         304: 'Not Modified',
+        414: 'URI Too Long',
          }
 
 def response_line(status_code):
@@ -73,6 +74,13 @@ def response_headers(l = None,filename = None):
         else:
             header += "%s: %s\r\n" % (h, headers[h])
     return header
+
+def uri_len(uri):
+    l = len(uri)
+    if(l > max_uri_len):
+        return 1
+    else:
+        return 0
 
 def getdate(s):
     k = []
@@ -125,6 +133,19 @@ def HTTP_400_Handler():
         response_body
     )
 
+def HTTP_414_handler():
+    responseline = response_line(status_code=414)
+    blank_line = "\r\n"
+    response_body = "<h1>414 Uri Too Long</h1>\n"
+    l = len(response_body)
+    responseheaders = response_headers(l)
+    return "%s%s%s%s%s" % (
+            blank_line,
+            responseline, 
+            responseheaders, 
+            blank_line, 
+            response_body
+        )
 
 def HTTP_501_handler(uri):
     responseline = response_line(status_code=501)
@@ -321,7 +342,9 @@ def HTTPRequest(data):
 def handle_request(data):
     data = data.decode()
     method, uri, http_version = HTTPRequest(data)
-    if(method == 'GET'):
+    if(uri_len(uri.strip('/')) == 1):
+        response = HTTP_414_handler()
+    elif(method == 'GET'):
         if(uri == None):
             response = HTTP_400_Handler()
         else:
