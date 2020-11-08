@@ -4,6 +4,8 @@ import os
 import datetime
 import time
 from conf import *
+from threading import *
+import concurrent.futures
 """
 HTTP/1.1 200 OK
 Date: Mon, 12 Oct 2020 06:35:24 GMT
@@ -25,6 +27,7 @@ x_year = x.strftime("%Y")
 x_hour = x.strftime("%H")
 x_min = x.strftime("%M")
 x_sec = x.strftime("%S")
+# response = "Hello, I am Kushal\r\n"
 
 headers = {
         'Date': "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S")),
@@ -337,10 +340,10 @@ def HTTPRequest(data):
     if len(words) > 2:
         http_version = words[2]
     return method, uri, http_version
-    res_ifs()
 
 def handle_request(data):
     data = data.decode()
+    global response
     method, uri, http_version = HTTPRequest(data)
     if(uri_len(uri.strip('/')) == 1):
         response = HTTP_414_handler()
@@ -358,8 +361,8 @@ def handle_request(data):
     elif(method == 'DELETE'):
         response = DELETE(uri)
     else:
-         response = HTTP_501_handler(uri)
-    return response
+        response = HTTP_501_handler(uri)
+    # return response
 
 host='127.0.0.1'
 try:
@@ -377,11 +380,8 @@ while True:
     conn, addr = s.accept()
     print("Connected by", addr)
     data = (conn.recv(1024))
-    print(data.decode())
-    # k = data.decode().split("\r\n")
-    # for i in k:
-    #     if("If-Modified-Since" in i):
-    #         print(i)
-    response = handle_request(data)
+    t1 = Thread(target=handle_request, args=(data,))
+    t1.start()
+    t1.join()   
     conn.sendall(bytes(response, 'utf-8'))
     conn.close()
