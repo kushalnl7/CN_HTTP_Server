@@ -128,8 +128,8 @@ def HTTP_400_Handler():
     responseheaders = response_headers(l)
     blank_line = "\r\n"
     
-    return "%s%s%s%s%s" % (
-        blank_line,
+    return "%s%s%s%s" % (
+        # blank_line,
         responseline,
         responseheaders,
         blank_line,
@@ -142,8 +142,8 @@ def HTTP_414_handler():
     response_body = "<h1>414 Uri Too Long</h1>\n"
     l = len(response_body)
     responseheaders = response_headers(l)
-    return "%s%s%s%s%s" % (
-            blank_line,
+    return "%s%s%s%s" % (
+            # blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -156,8 +156,8 @@ def HTTP_501_handler(uri):
     response_body = "<h1>501 Not Implemented</h1>\n"
     l = len(response_body)
     responseheaders = response_headers(l)
-    return "%s%s%s%s%s" % (
-            blank_line,
+    return "%s%s%s%s" % (
+            # blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -169,8 +169,8 @@ def OPTIONS(uri):
     extra_headers = {'Allow': 'OPTIONS, GET'}
     responseheaders = response_headers()
     blank_line = "\r\n"
-    return "%s%s%s%s" % (
-            blank_line,
+    return "%s%s%s" % (
+            # blank_line,
             responseline, 
             responseheaders,
             blank_line
@@ -220,8 +220,8 @@ def GET(uri, data):
     blank_line = "\r\n"
     with open("access.log", "a") as myfile:
         myfile.write(logtext)
-    return "%s%s%s%s%s" % (
-            blank_line,
+    return "%s%s%s%s" % (
+            # blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -238,8 +238,8 @@ def POST(uri, data):
     response_body = ""
     for i in k:
         response_body += str(i) + "\r\n"
-    return "%s%s%s%s%s" % (
-            blank_line,
+    return "%s%s%s%s" % (
+            # blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -269,8 +269,8 @@ def HEAD(uri, data):
 
     with open("access.log", "a") as myfile:
         myfile.write(logtext)
-    return "%s%s%s%s" % (
-            blank_line,
+    return "%s%s%s" % (
+            # blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -297,8 +297,8 @@ def PUT(uri, data):
         responseheaders = response_headers(len(response_body))
 
     """ 204 No Content Status Code Pending """
-    return "%s%s%s%s%s" % (
-            blank_line,
+    return "%s%s%s%s" % (
+            # blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -319,8 +319,8 @@ def DELETE(uri):
         responseheaders = response_headers(len(response_body))
     blank_line = "\r\n"
     """ 204 No Content Status Code Pending """
-    return "%s%s%s%s%s" % (
-            blank_line,
+    return "%s%s%s%s" % (
+            # blank_line,
             responseline, 
             responseheaders, 
             blank_line, 
@@ -351,6 +351,7 @@ def handle_request(data):
         if(uri == None):
             response = HTTP_400_Handler()
         else:
+            # time.sleep (2)
             response = GET(uri, data)
     elif(method == 'HEAD'):
         response = HEAD(uri, data)
@@ -363,6 +364,9 @@ def handle_request(data):
     else:
         response = HTTP_501_handler(uri)
     # return response
+
+def sleep():
+    time.sleep(1)
 
 host='127.0.0.1'
 try:
@@ -381,7 +385,10 @@ while True:
     print("Connected by", addr)
     data = (conn.recv(1024))
     t1 = Thread(target=handle_request, args=(data,))
+    t2 = Thread(target=sleep)
     t1.start()
-    t1.join()   
+    t2.start()
+    t1.join() 
+    t2.join()  
     conn.sendall(bytes(response, 'utf-8'))
     conn.close()
