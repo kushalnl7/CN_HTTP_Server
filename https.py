@@ -49,6 +49,9 @@ status_codes = {
         202: 'Accepted',
         304: 'Not Modified',
         414: 'URI Too Long',
+        408: 'Request Timeout',
+        411: 'Length Required',
+        413: 'Payload Too Large',
          }
 
 def response_line(status_code):
@@ -136,10 +139,54 @@ def HTTP_400_Handler():
         response_body
     )
 
+
+def HTTP_408_Handler():
+    responseline = response_line(status_code=408)
+    response_body = "<h1>408 Request Timeout</h1>\n"
+    l = len(response_body)
+    responseheaders = response_headers(l)
+    blank_line = "\r\n"
+    
+    return "%s%s%s%s" % (
+        # blank_line,
+        responseline,
+        responseheaders,
+        blank_line,
+        response_body
+    )
+
 def HTTP_414_handler():
     responseline = response_line(status_code=414)
     blank_line = "\r\n"
-    response_body = "<h1>414 Uri Too Long</h1>\n"
+    response_body = "<h1>411 Uri Too Long</h1>\n"
+    l = len(response_body)
+    responseheaders = response_headers(l)
+    return "%s%s%s%s" % (
+            # blank_line,
+            responseline, 
+            responseheaders, 
+            blank_line, 
+            response_body
+        )
+
+def HTTP_411_handler():
+    responseline = response_line(status_code=411)
+    blank_line = "\r\n"
+    response_body = "<h1>411 Length Required</h1>\n"
+    l = len(response_body)
+    responseheaders = response_headers(l)
+    return "%s%s%s%s" % (
+            # blank_line,
+            responseline, 
+            responseheaders, 
+            blank_line, 
+            response_body
+        )
+
+def HTTP_413_handler():
+    responseline = response_line(status_code=413)
+    blank_line = "\r\n"
+    response_body = "<h1>413 Payload Too Large</h1>\n"
     l = len(response_body)
     responseheaders = response_headers(l)
     return "%s%s%s%s" % (
@@ -277,33 +324,44 @@ def HEAD(uri, data):
         )
 
 def PUT(uri, data):
-    data = data.split('\r\n')[-1]
-    filename = uri.strip('/')
-    if(os.path.isfile(filename) == False):
-        f = open(filename,"w+")
-        f.write(data)
-        response_body = ""
-        if(f):
-            response_body += "<h1>The file was created.</h1>\n"
-        blank_line = "\r\n"
-        responseline = response_line(201)
-        responseheaders = response_headers(len(response_body))
-    else:
-        f = open(filename,"w+")
-        f.write(data)
-        blank_line = "\r\n"
-        responseline = response_line(200)
-        response_body = ""
-        responseheaders = response_headers(len(response_body))
+    data1 = data.split('\r\n')
+    k = 0
+    print(data1)
+    for i in data1:
+        if("Content-Length" in i):
+            k += 1
+            break
+    if(k == 1):
+        data = data.split('\r\n')[-1]
+        filename = uri.strip('/')
+        if(os.path.isfile(filename) == False):
+            f = open(filename,"w+")
+            f.write(data)
+            response_body = ""
+            if(f):
+                response_body += "<h1>The file was created.</h1>\n"
+            blank_line = "\r\n"
+            responseline = response_line(201)
+            responseheaders = response_headers(len(response_body))
+        else:
+            f = open(filename,"w+")
+            f.write(data)
+            blank_line = "\r\n"
+            responseline = response_line(200)
+            response_body = ""
+            responseheaders = response_headers(len(response_body))
 
-    """ 204 No Content Status Code Pending """
-    return "%s%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-            response_body
-        )
+        """ 204 No Content Status Code Pending """
+        return "%s%s%s%s" % (
+                # blank_line,
+                responseline, 
+                responseheaders, 
+                blank_line, 
+                response_body
+            )
+    else:
+        res = HTTP_411_handler()
+        return res
 
 def DELETE(uri):
     filename = uri.strip('/')
@@ -347,6 +405,8 @@ def handle_request(data):
     method, uri, http_version = HTTPRequest(data)
     if(uri_len(uri.strip('/')) == 1):
         response = HTTP_414_handler()
+    # elif((os.stat(filename)).st_size > max_payload):
+    #     response = HTTP_413_handler()
     elif(method == 'GET'):
         if(uri == None):
             response = HTTP_400_Handler()
@@ -384,11 +444,16 @@ while True:
     conn, addr = s.accept()
     print("Connected by", addr)
     data = (conn.recv(1024))
+    start = time.time()
     t1 = Thread(target=handle_request, args=(data,))
-    t2 = Thread(target=sleep)
+    # t2 = Thread(target=sleep)
     t1.start()
-    t2.start()
+    # t2.start()
     t1.join() 
-    t2.join()  
-    conn.sendall(bytes(response, 'utf-8'))
+    # t2.join()  
+    end = time.time()
+    if(end - start < max_time):
+        conn.sendall(bytes(response, 'utf-8'))
+    else:
+        response = HTTP_408_Handler()
     conn.close()
