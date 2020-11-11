@@ -5,6 +5,7 @@ import datetime
 import time
 from conf import *
 from threading import *
+import threading
 import concurrent.futures
 """
 HTTP/1.1 200 OK
@@ -251,6 +252,7 @@ def GET(uri, data):
             responseline = response_line(200)
             with open(filename) as f:
                 response_body = f.read()
+            f.close()
             l = len(response_body)
             date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
             logtext = '%s - - [%s] "GET %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
@@ -402,6 +404,7 @@ def HTTPRequest(data):
 def handle_request(data):
     data = data.decode()
     global response
+    # time.sleep(10)
     method, uri, http_version = HTTPRequest(data)
     if(uri_len(uri.strip('/')) == 1):
         response = HTTP_414_handler()
@@ -423,7 +426,6 @@ def handle_request(data):
         response = DELETE(uri)
     else:
         response = HTTP_501_handler(uri)
-    # return response
 
 def sleep():
     time.sleep(1)
@@ -439,21 +441,26 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((host, port))
 s.listen(5)
 print("Listening at", s.getsockname())
-
+response = None
 while True:
+    # global conn
     conn, addr = s.accept()
     print("Connected by", addr)
     data = (conn.recv(1024))
     start = time.time()
+    # handle_request(data)
     t1 = Thread(target=handle_request, args=(data,))
     # t2 = Thread(target=sleep)
     t1.start()
-    # t2.start()
-    t1.join() 
-    # t2.join()  
     end = time.time()
+    print("No. of active connections : ", threading.active_count())
+    while(response is None):
+        continue
     if(end - start < max_time):
         conn.sendall(bytes(response, 'utf-8'))
     else:
         response = HTTP_408_Handler()
+    print("Closing Connection\n")
     conn.close()
+    
+
