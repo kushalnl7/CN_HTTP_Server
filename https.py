@@ -312,16 +312,26 @@ def GET(uri, data):
 def POST(uri, data):
     global st_code
     lines = data.split('\r\n')
+    filename = uri.strip('/')
     responseline = response_line(200)
     st_code = 200
     l = len(lines[-1])
+    print('\n')
+    print(lines[-1])
+    print('\n')
+    if(l > max_payload):
+        response = HTTP_413_handler()
+        return response
     responseheaders = response_headers(l+1)
     blank_line = "\r\n"
     k = lines[-1].split('&')
     response_body = ""
     for i in k:
         response_body += str(i) + "\r\n"
-    print("returning from POST")
+    date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+    logtext = '%s - - [%s] "POST %s HTTP/1.1" 200 %s "-" "-" %s\r\n' % (host, date, filename, (os.stat(filename)).st_size, lines[-1])
+    with open("access.log", "a") as myfile:
+        myfile.write(logtext)
     return "%s%s%s%s" % (
             # blank_line,
             responseline, 
@@ -372,31 +382,35 @@ def PUT(uri, data):
             break
     if(k == 1):
         data = data.split('\r\n')[-1]
-        filename = uri.strip('/')
-        if(os.path.isfile(filename) == False):
-            f = open(filename,"w+")
-            f.write(data)
-            response_body = ""
-            if(f):
-                response_body += "<h1>The file was created.</h1>\n"
-            responseline = response_line(201)
-            st_code = 201
-            responseheaders = response_headers(len(response_body))
-        elif(len(data) == 0):
-            f = open(filename,"w+")
-            f.write(data)
-            responseline = response_line(204)
-            st_code = 204
-            response_body = ""
-            l = len(response_body)
-            responseheaders = response_headers(l)
+        if(len(data) > max_payload):
+            response = HTTP_413_handler()
+            return response
         else:
-            f = open(filename,"w+")
-            f.write(data)
-            responseline = response_line(200)
-            st_code = 200
-            response_body = ""
-            responseheaders = response_headers(len(response_body))
+            filename = uri.strip('/')
+            if(os.path.isfile(filename) == False):
+                f = open(filename,"w+")
+                f.write(data)
+                response_body = ""
+                if(f):
+                    response_body += "<h1>The file was created.</h1>\n"
+                responseline = response_line(201)
+                st_code = 201
+                responseheaders = response_headers(len(response_body))
+            elif(len(data) == 0):
+                f = open(filename,"w+")
+                f.write(data)
+                responseline = response_line(204)
+                st_code = 204
+                response_body = ""
+                l = len(response_body)
+                responseheaders = response_headers(l)
+            else:
+                f = open(filename,"w+")
+                f.write(data)
+                responseline = response_line(200)
+                st_code = 200
+                response_body = ""
+                responseheaders = response_headers(len(response_body))
 
         """ 204 No Content Status Code Pending """
         blank_line = "\r\n"
@@ -460,18 +474,18 @@ def handle_request(data):
     print(method, uri, http_version)
     if(uri_len(uri.strip('/')) == 1):
         response = HTTP_414_handler()
-    # elif((os.stat(filename)).st_size > max_payload):
-    #     response = HTTP_413_handler()
     elif(method == 'GET'):
         if(uri is None or http_version != "HTTP/1.1"):
             response = HTTP_400_Handler()
         else:
             response = GET(uri, data)
+        logtext(uri.strip('/'), st_code, method)
     elif(method == 'HEAD'):
         if(uri is None or http_version != "HTTP/1.1"):
             response = HTTP_400_Handler()
         else:
             response = HEAD(uri, data)
+        logtext(uri.strip('/'), st_code, method)
     elif(method == 'POST'):
         if(uri is None or http_version != "HTTP/1.1"):
             response = HTTP_400_Handler()
@@ -482,14 +496,17 @@ def handle_request(data):
             response = HTTP_400_Handler()
         else:    
             response = PUT(uri, data)
+        logtext(uri.strip('/'), st_code, method)
     elif(method == 'DELETE'):
         if(uri is None or http_version != "HTTP/1.1"):
             response = HTTP_400_Handler()
         else:
             response = DELETE(uri)
+        logtext(uri.strip('/'), st_code, method)
     else:
         response = HTTP_501_handler(uri)
-    logtext(uri.strip('/'), st_code, method)
+        logtext(uri.strip('/'), st_code, method)
+    
 
     
 

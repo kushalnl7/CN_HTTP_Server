@@ -4,4 +4,4 @@ cokkies = {
 
 max_uri_len = 8017
 max_time = 300
-max_payload = 1000
+max_payload = 600
