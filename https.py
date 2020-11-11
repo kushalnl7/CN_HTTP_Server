@@ -55,6 +55,7 @@ status_codes = {
         408: 'Request Timeout',
         411: 'Length Required',
         413: 'Payload Too Large',
+        204: 'No Content',
          }
 
 def response_line(status_code):
@@ -130,7 +131,7 @@ def res_ifs(date, filename):
 def logtext(filename, st_code, method):
     date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
     # print(st_code)
-    if(st_code == 200 or st_code == 201 or st_code == 304):
+    if(st_code == 200 or st_code == 201 or st_code == 304 or st_code == 204):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s %s "-" "-" \r\n' % (host, date, method, filename, st_code, (os.stat(filename)).st_size)
     elif(st_code == 404 or st_code == 501 or st_code == 400 or st_code == 501 or st_code == 414 or st_code == 408 or st_code == 411 or st_code == 413):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s 0 "-" "-" \r\n' % (host, date, method, filename, st_code)
@@ -271,7 +272,7 @@ def GET(uri, data):
         else:
             responseline = response_line(404)
             st_code = 404
-            response_body = "<h1>404 Not Found</h1>responseheaders = response_headers(len(response_body))\n"
+            response_body = "<h1>404 Not Found</h1>\n"
             l = len(response_body)
             date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
             # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
@@ -363,10 +364,8 @@ def HEAD(uri, data):
 
 def PUT(uri, data):
     global st_code
-    print(uri, data)
     data1 = data.split('\r\n')
     k = 0
-    print(data1)
     for i in data1:
         if("Content-Length" in i):
             k += 1
@@ -380,20 +379,27 @@ def PUT(uri, data):
             response_body = ""
             if(f):
                 response_body += "<h1>The file was created.</h1>\n"
-            blank_line = "\r\n"
             responseline = response_line(201)
             st_code = 201
             responseheaders = response_headers(len(response_body))
+        elif(len(data) == 0):
+            f = open(filename,"w+")
+            f.write(data)
+            responseline = response_line(204)
+            st_code = 204
+            response_body = ""
+            l = len(response_body)
+            responseheaders = response_headers(l)
         else:
             f = open(filename,"w+")
             f.write(data)
-            blank_line = "\r\n"
             responseline = response_line(200)
             st_code = 200
             response_body = ""
             responseheaders = response_headers(len(response_body))
 
         """ 204 No Content Status Code Pending """
+        blank_line = "\r\n"
         return "%s%s%s%s" % (
                 # blank_line,
                 responseline, 
@@ -505,13 +511,13 @@ response = None
 st_code = None
 while True:
     # global conn
-    print("Starting Connection")
+    # print("Starting Connection")
     conn, addr = s.accept()
     print("Connected by", addr)
     data = (conn.recv(1024))
-    print('\n\n')
-    print(data)
-    print('\n\n')
+    # print('\n\n')
+    # print(data)
+    # print('\n\n')
     start = time.time()
     # handle_request(data)
     t1 = Thread(target=handle_request, args=(data,))
