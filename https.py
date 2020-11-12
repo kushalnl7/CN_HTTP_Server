@@ -467,6 +467,7 @@ def HTTPRequest(data):
 def handle_request(data):
     print("Handle_request")
     data = data.decode()
+    print(data)
     global response
     global st_code
     # time.sleep(10)
