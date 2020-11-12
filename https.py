@@ -164,14 +164,7 @@ def HTTP_400_Handler():
     l = len(response_body)
     responseheaders = response_headers(l)
     blank_line = "\r\n"
-    
-    return "%s%s%s%s" % (
-        # blank_line,
-        responseline,
-        responseheaders,
-        blank_line,
-        response_body
-    )
+    return responseline, responseheaders, response_body
 
 
 def HTTP_408_Handler():
@@ -182,14 +175,7 @@ def HTTP_408_Handler():
     l = len(response_body)
     responseheaders = response_headers(l)
     blank_line = "\r\n"
-    
-    return "%s%s%s%s" % (
-        # blank_line,
-        responseline,
-        responseheaders,
-        blank_line,
-        response_body
-    )
+    return responseline, responseheaders, response_body
 
 def HTTP_414_handler():
     global st_code
@@ -199,13 +185,7 @@ def HTTP_414_handler():
     response_body = "<h1>411 Uri Too Long</h1>\n"
     l = len(response_body)
     responseheaders = response_headers(l)
-    return "%s%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-            response_body
-        )
+    return responseline, responseheaders, response_body
 
 def HTTP_411_handler():
     global st_code
@@ -215,13 +195,7 @@ def HTTP_411_handler():
     response_body = "<h1>411 Length Required</h1>\n"
     l = len(response_body)
     responseheaders = response_headers(l)
-    return "%s%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-            response_body
-        )
+    return responseline, responseheaders, response_body
 
 def HTTP_413_handler():
     global st_code
@@ -231,13 +205,7 @@ def HTTP_413_handler():
     response_body = "<h1>413 Payload Too Large</h1>\n"
     l = len(response_body)
     responseheaders = response_headers(l)
-    return "%s%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-            response_body
-        )
+    return responseline, responseheaders, response_body
 
 def HTTP_501_handler(uri):
     global st_code
@@ -247,25 +215,14 @@ def HTTP_501_handler(uri):
     response_body = "<h1>501 Not Implemented</h1>\n"
     l = len(response_body)
     responseheaders = response_headers(l)
-    return "%s%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-            response_body
-        )
+    return responseline, responseheaders, response_body
 
 def OPTIONS(uri):
     responseline = response_line(200)
     extra_headers = {'Allow': 'OPTIONS, GET'}
     responseheaders = response_headers()
     blank_line = "\r\n"
-    return "%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders,
-            blank_line
-        )
+    return responseline, responseheaders, response_body
 
 def GET(uri, data):
     print("Inside get")
@@ -351,13 +308,7 @@ def POST(uri, data):
     logtext = '%s - - [%s] "POST %s HTTP/1.1" 200 %s "-" "-" %s\r\n' % (host, date, filename, (os.stat(filename)).st_size, lines[-1])
     with open("access.log", "a") as myfile:
         myfile.write(logtext)
-    return "%s%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-            response_body
-        )
+    return responseline, responseheaders, response_body
     
 def HEAD(uri, data):
     global st_code
@@ -381,15 +332,7 @@ def HEAD(uri, data):
         # logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
         responseheaders = response_headers(l)
     blank_line = "\r\n"
-
-    # with open("access.log", "a") as myfile:
-    #     myfile.write(logtext)
-    return "%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-        )
+    return responseline, responseheaders, response_body
 
 def PUT(uri, data):
     global st_code
@@ -404,11 +347,11 @@ def PUT(uri, data):
         print(data)
         i = 0
         while(data[i] != '' and i < len(data)):
-            if(data[i+1] == '' and data[i+2] == '' and i < len(data) - 2):
+            if(i < len(data) - 2 and data[i+1] == '' and data[i+2] == ''):
                 i += 3
                 break
             i += 1
-        if(data[i] == ''):
+        if(i < len(data) and data[i] == ''):
             i += 1
         str = ""
         while(i < len(data)):
@@ -418,8 +361,8 @@ def PUT(uri, data):
             i += 1
         print(len(str))
         if(len(str) > max_payload):
-            response = HTTP_413_handler()
-            return response
+            responseline, responseheaders, response_body = HTTP_413_handler()
+            return responseline, responseheaders, response_body
         else:
             filename = uri.strip('/')
             if(os.path.isfile(filename) == False):
@@ -449,16 +392,10 @@ def PUT(uri, data):
 
         """ 204 No Content Status Code Pending """
         blank_line = "\r\n"
-        return "%s%s%s%s" % (
-                # blank_line,
-                responseline, 
-                responseheaders, 
-                blank_line, 
-                response_body
-            )
+        return responseline, responseheaders, response_body
     else:
-        res = HTTP_411_handler()
-        return res
+        responseline, responseheaders, response_body = HTTP_411_handler()
+        return responseline, responseheaders, response_body
 
 def DELETE(uri):
     global st_code
@@ -477,13 +414,7 @@ def DELETE(uri):
         responseheaders = response_headers(len(response_body))
     blank_line = "\r\n"
     """ 204 No Content Status Code Pending """
-    return "%s%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-            response_body
-        )
+    return responseline, responseheaders, response_body
 
 def HTTPRequest(data):
     http_version = '1.1' # default to HTTP/1.1 if request doesn't provide a version
@@ -513,35 +444,35 @@ def handle_request(data):
         response = HTTP_414_handler()
     elif(method == 'GET'):
         if(uri is None or http_version != "HTTP/1.1"):
-            response = HTTP_400_Handler()
+            responseline, responseheaders, response_body = HTTP_400_Handler()
         else:
             responseline, responseheaders, response_body = GET(uri, data)
         logtext(uri.strip('/'), st_code, method)
     elif(method == 'HEAD'):
         if(uri is None or http_version != "HTTP/1.1"):
-            response = HTTP_400_Handler()
+            responseline, responseheaders, response_body = HTTP_400_Handler()
         else:
-            response = HEAD(uri, data)
+            responseline, responseheaders, response_body = HEAD(uri, data)
         logtext(uri.strip('/'), st_code, method)
     elif(method == 'POST'):
         if(uri is None or http_version != "HTTP/1.1"):
-            response = HTTP_400_Handler()
+            responseline, responseheaders, response_body = HTTP_400_Handler()
         else:
-            response = POST(uri, data)
+            responseline, responseheaders, response_body = POST(uri, data)
     elif(method == 'PUT'):
         if(uri is None or http_version != "HTTP/1.1"):
-            response = HTTP_400_Handler()
+            responseline, responseheaders, response_body = HTTP_400_Handler()
         else:    
-            response = PUT(uri, data)
+            responseline, responseheaders, response_body = PUT(uri, data)
         logtext(uri.strip('/'), st_code, method)
     elif(method == 'DELETE'):
         if(uri is None or http_version != "HTTP/1.1"):
-            response = HTTP_400_Handler()
+            responseline, responseheaders, response_body = HTTP_400_Handler()
         else:
-            response = DELETE(uri)
+            responseline, responseheaders, response_body = DELETE(uri)
         logtext(uri.strip('/'), st_code, method)
     else:
-        response = HTTP_501_handler(uri)
+        responseline, responseheaders, response_body = HTTP_501_handler(uri)
         logtext(uri.strip('/'), st_code, method)
     # response_h = response_l + response_h + blank_line
     response = responseline + responseheaders + '\r\n'
