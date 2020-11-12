@@ -68,8 +68,8 @@ def stage2():
     requests.put("http://127.0.0.1:" + port + "/index.asd", data = filecontent)
 
     #DELETE Status Codes
-    requests.delete("http://localhost:" + port + "/newfile.txt")
-    # requests.delete("http://localhost:" + port + "/fdk.txt")
+    # requests.delete("http://localhost:" + port + "/newfile.txt")
+    requests.delete("http://localhost:" + port + "/fdk.txt")
 
 
     
@@ -82,12 +82,12 @@ def stage3():
 # stage1()
 # stage2()
 threads = []
-for _ in range(10):
+for _ in range(1):
     t = Thread(target=stage1)
     t.setDaemon(True)
     t.start()
     threads.append(t)
-for _ in range(10):
+for _ in range(1):
     t = Thread(target=stage2)
     t.setDaemon(True)
     t.start()
