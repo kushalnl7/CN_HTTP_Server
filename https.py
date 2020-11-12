@@ -124,16 +124,8 @@ def getdate(s):
 
 def res_ifs(date, filename):
     N = getdate(date)
-    # for h in headers:
-    #     if(h == "Last-Modified"):
-    #         M = getdate((headers[h])[5:25])
-    #         break
-    #Wed 4 Nov 2020 08:48:00 GMT
     k = time.ctime(os.path.getmtime(filename))
-    s = ""# for h in headers:
-    #     if(h == "Last-Modified"):
-    #         M = getdate((headers[h])[5:25])
-    #         break
+    s = ""
     if(int(k[9]) < 10):
         s += "0" + k[9]
     else:
@@ -150,12 +142,16 @@ def logtext(time, filename, st_code, method):
     # print(st_code)
     if(method == "DELETE" and st_code == 200):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s 0 "-" "-" \r\n' % (host, date, method, filename, st_code)
-    elif(st_code == 200 or st_code == 201 or st_code == 304 or st_code == 204):
+    elif(st_code == 200 or st_code == 201 or st_code == 304 or st_code == 204 or st_code == 202):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s %s "-" "-" \r\n' % (host, date, method, filename, st_code, (os.stat(filename)).st_size)
-    elif(st_code == 404 or st_code == 501 or st_code == 400 or st_code == 501 or st_code == 414 or st_code == 408 or st_code == 411 or st_code == 413 or st_code == 415):
+    elif(st_code == 404 or st_code == 501 or st_code == 400 or st_code == 414 or st_code == 408 or st_code == 411 or st_code == 413 or st_code == 415):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s 0 "-" "-" \r\n' % (host, date, method, filename, st_code)
     with open("access.log", "a") as myfile:
         myfile.write(text)
+    if(st_code == 200 or st_code == 501 or st_code == 415 or st_code == 400 or st_code == 404):
+        text = '%s - - [%s] "%s %s HTTP/1.1" %s 0 "-" "-" \r\n' % (host, date, method, filename, st_code)
+        with open("error.log", "a") as myfile:
+            myfile.write(text)
 
 
 def HTTP_400_Handler(time):
@@ -565,6 +561,11 @@ def handle_request(data):
     else:
         body = response_body
 
+def stop_server():
+    while(True):
+        k = input()
+        if(k == 'quit'):
+            os._exit(os.EX_OK)
 
 host='127.0.0.1'
 try:
@@ -580,6 +581,8 @@ print("Listening at", s.getsockname())
 response = None
 body = None
 st_code = None
+qt = Thread(target=stop_server)
+qt.start()
 while True:
     # global conn
     # print("Starting Connection")
