@@ -380,7 +380,19 @@ def PUT(uri, data):
             k += 1
             break
     if(k == 1):
-        data = data.split('\r\n')[-1]
+        data = data.split('\r\n')
+        i = 0
+        while(data[i] != '' and i < len(data)):
+            if(data[i+1] == '' and data[i+2] == '' and i < len(data) - 2):
+                i += 3
+                break
+            i += 1
+        str = ""
+        while(i < len(data)):
+            str += data[i]
+            if(i != len(data) - 1):
+                str += '\r\n'
+            i += 1
         if(len(data) > max_payload):
             response = HTTP_413_handler()
             return response
@@ -388,7 +400,7 @@ def PUT(uri, data):
             filename = uri.strip('/')
             if(os.path.isfile(filename) == False):
                 f = open(filename,"w+")
-                f.write(data)
+                f.write(str)
                 response_body = ""
                 if(f):
                     response_body += "<h1>The file was created.</h1>\n"
@@ -397,7 +409,7 @@ def PUT(uri, data):
                 responseheaders = response_headers(len(response_body))
             elif(len(data) == 0):
                 f = open(filename,"w+")
-                f.write(data)
+                f.write(str)
                 responseline = response_line(204)
                 st_code = 204
                 response_body = ""
@@ -405,7 +417,7 @@ def PUT(uri, data):
                 responseheaders = response_headers(l)
             else:
                 f = open(filename,"w+")
-                f.write(data)
+                f.write(str)
                 responseline = response_line(200)
                 st_code = 200
                 response_body = ""
