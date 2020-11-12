@@ -162,7 +162,7 @@ def HTTP_400_Handler(time):
     global st_code
     responseline = response_line(status_code=400)
     st_code = 400
-    response_body = "<h1>400 Bad Request</h1>\n"
+    response_body = "<html><head><title>400 Bad Request</title></head><body><h1>400 Bad Request></h1><p>Your browser sent a request that this server could not understand.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
     l = len(response_body)
     responseheaders = response_headers(time, l)
     blank_line = "\r\n"
@@ -173,7 +173,7 @@ def HTTP_408_Handler(time):
     global st_code
     responseline = response_line(status_code=408)
     st_code = 408
-    response_body = "<h1>408 Request Timeout</h1>\n"
+    response_body = "<html><head><title>408 Request Timeout</title></head><body><h1>408 Request Timeout></h1><p>Your browser did'nt send a complete request in time.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
     l = len(response_body)
     responseheaders = response_headers(time,l)
     blank_line = "\r\n"
@@ -184,7 +184,7 @@ def HTTP_414_handler(time):
     responseline = response_line(status_code=414)
     st_code = 414
     blank_line = "\r\n"
-    response_body = "<h1>411 Uri Too Long</h1>\n"
+    response_body = "<html><head><title>414 REQUEST-URI Too Long</title></head><body><h1>414 REQUEST-URI Too Long</h1><p>The requested URL is too large to process.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
     l = len(response_body)
     responseheaders = response_headers(time,l)
     return responseline, responseheaders, response_body
@@ -194,7 +194,7 @@ def HTTP_411_handler(time):
     responseline = response_line(status_code=411)
     st_code = 411
     blank_line = "\r\n"
-    response_body = "<h1>411 Length Required</h1>\n"
+    response_body = "<html><head><title>411 Length Required</title></head><body><h1>411 Length Required</h1><p>The request must be chunked or have a content length.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
     l = len(response_body)
     responseheaders = response_headers(time,l)
     return responseline, responseheaders, response_body
@@ -204,7 +204,7 @@ def HTTP_413_handler(time):
     responseline = response_line(status_code=413)
     st_code = 413
     blank_line = "\r\n"
-    response_body = "<h1>413 Payload Too Large</h1>\n"
+    response_body = "<html><head><title>413 Request Entity Too Large</title></head><body><h1>413 Request Entity Too Large</h1><p>The request entity is too large.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
     l = len(response_body)
     responseheaders = response_headers(time,l)
     return responseline, responseheaders, response_body
@@ -214,7 +214,7 @@ def HTTP_501_handler(time,uri):
     responseline = response_line(status_code=501)
     st_code = 501
     blank_line = "\r\n"
-    response_body = "<h1>501 Not Implemented</h1>\n"
+    response_body = "<html><head><title>501 Not Implemented</title></head><body><h1>501 Not Implemented</h1><p>The server is unable to process your request.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
     l = len(response_body)
     responseheaders = response_headers(time,l)
     return responseline, responseheaders, response_body
@@ -259,7 +259,7 @@ def GET(time,uri, data):
             else:
                 responseline = response_line(404)
                 st_code = 404
-                response_body = "<h1>404 Not Found</h1>\n"
+                response_body = "<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>The requested URL was not found on this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
                 l = len(response_body)
                 date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
                 # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
@@ -283,7 +283,7 @@ def GET(time,uri, data):
             else:
                 responseline = response_line(404)
                 st_code = 404
-                response_body = "<h1>404 Not Found</h1>\r\n"
+                response_body = "<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>The requested URL was not found on this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
                 l = len(response_body)
                 date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
                 # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
@@ -291,7 +291,7 @@ def GET(time,uri, data):
     else:
         responseline = response_line(415)
         st_code = 415
-        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
+        response_body = "<html><head><title>415 Unsupported Media Type</title></head><body><h1>415 Unsupported Media Type</h1><p>The server refused the request because the request entity format is not supported by this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
         l = len(response_body)
         date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
         responseheaders = response_headers(time,l)
@@ -330,7 +330,7 @@ def POST(time,uri, data):
         else:
             responseline = response_line(404)
             st_code = 404
-            response_body = "<h1>404 Not Found</h1>\n"
+            response_body = "<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>The requested URL was not found on this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
             l = len(response_body)
             date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
             # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
@@ -339,7 +339,7 @@ def POST(time,uri, data):
     else:
         responseline = response_line(415)
         st_code = 415
-        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
+        response_body = "<html><head><title>415 Unsupported Media Type</title></head><body><h1>415 Unsupported Media Type</h1><p>The server refused the request because the request entity format is not supported by this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
         l = len(response_body)
         date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
         responseheaders = response_headers(time,l)
@@ -374,7 +374,7 @@ def HEAD(time,uri, data):
             print("File does not exist")
             responseline = response_line(404)
             st_code = 404
-            response_body = "<h1>404 Not Found</h1>\n"
+            response_body = "<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>The requested URL was not found on this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
             l = len(response_body)
             date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
             # logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
@@ -382,7 +382,7 @@ def HEAD(time,uri, data):
     else:
         responseline = response_line(415)
         st_code = 415
-        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
+        response_body = "<html><head><title>415 Unsupported Media Type</title></head><body><h1>415 Unsupported Media Type</h1><p>The server refused the request because the request entity format is not supported by this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
         l = len(response_body)
         date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
         responseheaders = response_headers(time,l)
@@ -460,7 +460,7 @@ def PUT(time,uri, data):
     else:
         responseline = response_line(415)
         st_code = 415
-        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
+        response_body = "<html><head><title>415 Unsupported Media Type</title></head><body><h1>415 Unsupported Media Type</h1><p>The server refused the request because the request entity format is not supported by this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
         l = len(response_body)
         date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
         responseheaders = response_headers(time,l)
@@ -468,7 +468,7 @@ def PUT(time,uri, data):
 
 def DELETE(time, uri):
     global st_code
-    filename = uri.strip('/')
+    filename = uri.strip('/')   
     ext_list = filename.split('.')
     if len(ext_list) > 1:
         extension = ext_list[1]
@@ -490,7 +490,7 @@ def DELETE(time, uri):
     else:
         responseline = response_line(415)
         st_code = 415
-        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
+        response_body = "<html><head><title>415 Unsupported Media Type</title></head><body><h1>415 Unsupported Media Type</h1><p>The server refused the request because the request entity format is not supported by this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
         l = len(response_body)
         date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
         responseheaders = response_headers(time,l)
