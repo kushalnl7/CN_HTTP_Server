@@ -29,7 +29,7 @@ def stage2():
     a = requests.get("http://localhost:" + port + "/index.html")                                
     a = requests.get("http://localhost:" + port + "/index.html", headers = {'If-Modified-Since': 'Wed, 4 Nov 2020 08:48:00 GMT'})
     a = requests.get("http://localhost:" + port + "/fdjgk.html")
-    # a = requests.get("http://localhost:" + port + "/klfile.txt") 
+    a = requests.get("http://localhost:" + port + "/file.txt") 
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect((serverName,serverPort))
     data = ""
@@ -55,7 +55,7 @@ def stage2():
     #PUT Status Codes
     requests.put("http://localhost:" + port + "/newfile.txt", data=filecontent)
     requests.put("http://localhost:" + port + "/newfile.txt", data=filecontent)
-    # requests.put("http://localhost:" + port + "/klfile.txt", data=filecontent)
+    requests.put("http://localhost:" + port + "/file.txt", data=filecontent)
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect((serverName,serverPort))
     data = ""

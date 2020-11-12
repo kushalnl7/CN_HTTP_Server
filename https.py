@@ -28,6 +28,7 @@ headers = {
         'Content-Length': '10918',
         'Vary': 'Accept-Encoding',
         'Content-Type': 'text/html',
+        'Connection': 'close',
         'Set-Cookie': 'yummy_cookie=choco',
           }
 status_codes = {
@@ -90,7 +91,40 @@ def response_headers(time1, l = None,filename = None, extension = None):
             header += "%s: %s\r\n" % (h, headers[h])
     return header
 
+def compareDate():
+    id = headers["Cookie"].split("=")[0]
+    expiry = sent_cookies[id]
+    DateTime = datetime.datetime.now()
+    currDate += DateTime.strftime("%a, %d %B %Y %I:%M:%S")
+    if expiry > currDate:
+        return False
+    return True
 
+def Set_Cookie():
+    for x in cookies:
+        if x not in sent_cookies:
+            id = x
+            DateTime = (datetime.datetime.now() + datetime.timedelta(days=1))
+            value=cookies[id]
+            date = DateTime.strftime("%a, %d %B %Y %I:%M:%S ")
+            if id not in sent_cookies.keys():
+                sent_cookies[id] = date
+            print(sent_cookies)
+            break
+        else:
+            continue
+    if id:
+        cookie = "Set-Cookie: "
+        cookie += id + "="
+        cookie += value
+        cookie += "; "
+        cookie += "Expires="
+        DateTime = (datetime.datetime.now() + datetime.timedelta(days=1))
+        cookie += DateTime.strftime("%a, %d %B %Y %I:%M:%S")
+        cookie += "GMT;"
+        return cookie
+    else:
+        return None
 
 def uri_len(uri):
     l = len(uri)
@@ -605,27 +639,32 @@ print("Listening at", s.getsockname())
 response = None
 body = None
 st_code = None
+n_conn = 0
 qt = Thread(target=stop_server)
 qt.start()
 while True:
     conn, addr = s.accept()
-    print("Connected by", addr)
-    data = (conn.recv(1024))
-    print("No. of active connections : ", threading.active_count()-1)
-    start = time.time()
-    t1 = Thread(target=handle_request, args=(data,))
-    t1.start()
-    end = time.time()
-    # print("No. of active connections : ", threading.active_count())
-    while(response is None or body is None):
-        continue
-    if(end - start < max_time):
-        conn.sendall(bytes(response, 'utf-8'))
-        conn.sendall(body)
+    if(n_conn < max_conn):
+        print("Connected by", addr)
+        n_conn += 1
+        data = (conn.recv(1024))
+        start = time.time()
+        t1 = Thread(target=handle_request, args=(data,))
+        t1.start()
+        end = time.time()
+        while(response is None or body is None):
+            continue
+        if(end - start < max_time):
+            conn.sendall(bytes(response, 'utf-8'))
+            conn.sendall(body)
+        else:
+            response = HTTP_408_Handler()
+        response = None
+        conn.close()
+        n_conn -= 1
     else:
-        response = HTTP_408_Handler()
-    response = None
-    print("Connection Closed for: ", addr)
-    conn.close()
+        text = "CONNECTION REFUSED! The server has reached maximum connections limit.\r\n"
+        with open("error.log", "a") as myfile:
+            myfile.write(text)
     
 
