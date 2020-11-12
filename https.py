@@ -106,6 +106,7 @@ def response_headers(time1, l = None,filename = None, extension = None):
 
 def uri_len(uri):
     l = len(uri)
+    print(l)
     if(l > max_uri_len):
         return 1
     else:
@@ -296,20 +297,35 @@ def POST(time,uri, data):
     global st_code
     lines = data.split('\r\n')
     filename = uri.strip('/')
-    responseline = response_line(200)
-    st_code = 200
-    l = len(lines[-1])
-    print('\n')
-    print(lines[-1])
-    print('\n')
-    if(l > max_payload):
-        response = HTTP_413_handler()
-        return response
-    responseheaders = response_headers(time,l+1)
-    blank_line = "\r\n"
-    response_body = lines[-1]
-    date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
-    logtext = '%s - - [%s] "POST %s HTTP/1.1" 200 %s "-" "-" %s\r\n' % (host, date, filename, (os.stat(filename)).st_size, lines[-1])
+    if os.path.exists(filename):
+        responseline = response_line(200)
+        st_code = 200
+        l = len(lines[-1])
+        print('\n')
+        print(lines[-1])
+        print('\n')
+        if(l > max_payload):
+            responseline, responseheaders, response_body = HTTP_413_handler(time)
+            date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
+            logtext = '%s - - [%s] "POST %s HTTP/1.1" 413 %s "-" "-"\r\n' % (host, date, filename, (os.stat(filename)).st_size)
+            with open("access.log", "a") as myfile:
+                myfile.write(logtext)
+            return responseline, responseheaders, response_body
+        responseheaders = response_headers(time,l+1)
+        blank_line = "\r\n"
+        response_body = lines[-1]
+        date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
+        logtext = '%s - - [%s] "POST %s HTTP/1.1" 200 %s "-" "-" %s\r\n' % (host, date, filename, (os.stat(filename)).st_size, lines[-1])
+        
+    else:
+        responseline = response_line(404)
+        st_code = 404
+        response_body = "<h1>404 Not Found</h1>\n"
+        l = len(response_body)
+        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+        # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+        responseheaders = response_headers(time,l)
+        logtext = '%s - - [%s] "POST %s HTTP/1.1" 404 0 "-" "-"\r\n' % (host, date, filename)
     with open("access.log", "a") as myfile:
         myfile.write(logtext)
     return responseline, responseheaders, response_body
@@ -444,7 +460,7 @@ def handle_request(data):
     # time.sleep(10)
     time = datetime.datetime.now()
     method, uri, http_version = HTTPRequest(data)
-    print(method, uri, http_version)
+    # print(method, uri, http_version)
     if(uri_len(uri.strip('/')) == 1):
         response = HTTP_414_handler(time)
     elif(method == 'GET'):
