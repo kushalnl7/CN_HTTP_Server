@@ -80,5 +80,17 @@ def stage3():
     pass
 
 # stage1()
-stage2()
-    
+# stage2()
+threads = []
+for _ in range(10):
+    t = Thread(target=stage1)
+    t.setDaemon(True)
+    t.start()
+    threads.append(t)
+for _ in range(10):
+    t = Thread(target=stage2)
+    t.setDaemon(True)
+    t.start()
+    threads.append(t)
+for i in threads:
+    i.join()    

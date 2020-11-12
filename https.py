@@ -67,7 +67,6 @@ def response_headers(time1, l = None,filename = None, extension = None):
                 else:
                     s += k[9]
                 header += "%s: %s, %s %s %s %s GMT\r\n" % (h, k[0:3], s, k[4:7], k[20:24], k[11:19])
-            # header += "%s: %s\r\n" % (h, time.ctime(os.path.getmtime(filename)))
         elif(h == 'Set-Cokkie'):
             for k in cokkies:
                 header += "%s: %s=%s\r\n" % (h, k, cokkies[k])
@@ -178,6 +177,7 @@ def HTTP_408_Handler(time):
 def HTTP_414_handler(time):
     global st_code
     responseline = response_line(status_code=414)
+    print('Giving 414')
     st_code = 414
     blank_line = "\r\n"
     response_body = "<html><head><title>414 REQUEST-URI Too Long</title></head><body><h1>414 REQUEST-URI Too Long</h1><p>The requested URL is too large to process.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
@@ -472,9 +472,9 @@ def DELETE(time, uri):
         filename = uri.strip('/')
         if(os.path.isfile(filename) == False):
             """ Not Sure about 202"""
-            responseline = response_line(202)
-            st_code = 202
-            response_body = ""
+            responseline = response_line(404)
+            st_code = 404
+            response_body = "<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>The requested URL was not found on this server.</p><hr><address>My (Ubuntu) Server at 127.0.0.1 Port 12000</address></body></html>\n"
             responseheaders = response_headers(time,len(response_body))
         else:
             os.remove(filename)
@@ -519,9 +519,8 @@ def handle_request(data):
     print(uri)
     # print(method, uri, http_version)
     if(uri_len(uri.strip('/')) == 1):
-        print("Inside this function")
         responseline, responseheaders, response_body = HTTP_414_handler(time)
-        print("Inside this function")
+        logtext(time, uri.strip('/'), st_code, method)
     elif(method == 'GET'):
         if(uri is None or http_version != "HTTP/1.1"):
             responseline, responseheaders, response_body = HTTP_400_Handler(time)
