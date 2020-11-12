@@ -65,7 +65,7 @@ def stage2():
     # print('From Server: ', modifiedSentence.decode())
     clientSocket.close()
     requests.put("http://127.0.0.1:" + port + "/fdsajlfjdfjhajkhfkjdahfjkahjfkdhakjfdhkajhfjkahfdjhakjfhajdfjkajkfdhakjfasfasjfdsjfalfdjaofklfajldsdfjalkjlaksjflkasjfjalfjsjfsakjfdsdjflkasjdfljskdfjlsadfjlsdakjflksdajfldsajflkdjsafljsalfjalfjalkfjlasjfldsjaflkjsdlfkjklrajfdifarennrelajlktjwtljrltjlrejltjlrejtlrjtlkwaijrf4lrgljreltjlrtjdfjlkjf.html", data = filecontent)
-    # requests.put("http://127.0.0.1:" + port + "/index.asd", data = filecontent)
+    requests.put("http://127.0.0.1:" + port + "/index.asd", data = filecontent)
 
     #DELETE Status Codes
     requests.delete("http://localhost:" + port + "/newfile.txt")

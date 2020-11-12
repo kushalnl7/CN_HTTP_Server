@@ -7,20 +7,8 @@ from conf import *
 from threading import *
 import threading
 import concurrent.futures
-"""
-HTTP/1.1 200 OK
-Date: Mon, 12 Oct 2020 06:35:24 GMT
-Server: Apache/2.4.41 (Ubuntu)
-Last-Modified: Tue, 06 Oct 2020 13:33:34 GMT
-ETag: "2aa6-5b100a5427dfe"
-Accept-Ranges: bytes
-Content-Length: 10918
-Vary: Accept-Encoding
-Content-Type: text/html
-"""
 
 x = datetime.datetime.now()
-# date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
 x_day = x.strftime("%d")
 x_month = x.strftime("%b")
 x_nmonth = x.strftime("%m")
@@ -28,7 +16,6 @@ x_year = x.strftime("%Y")
 x_hour = x.strftime("%H")
 x_min = x.strftime("%M")
 x_sec = x.strftime("%S")
-# response = "Hello, I am Kushal\r\n"
 
 
 
@@ -56,6 +43,7 @@ status_codes = {
         411: 'Length Required',
         413: 'Payload Too Large',
         204: 'No Content',
+        415: 'Unsupported Media Type'
          }
 
 def response_line(status_code):
@@ -164,7 +152,7 @@ def logtext(time, filename, st_code, method):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s 0 "-" "-" \r\n' % (host, date, method, filename, st_code)
     elif(st_code == 200 or st_code == 201 or st_code == 304 or st_code == 204):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s %s "-" "-" \r\n' % (host, date, method, filename, st_code, (os.stat(filename)).st_size)
-    elif(st_code == 404 or st_code == 501 or st_code == 400 or st_code == 501 or st_code == 414 or st_code == 408 or st_code == 411 or st_code == 413):
+    elif(st_code == 404 or st_code == 501 or st_code == 400 or st_code == 501 or st_code == 414 or st_code == 408 or st_code == 411 or st_code == 413 or st_code == 415):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s 0 "-" "-" \r\n' % (host, date, method, filename, st_code)
     with open("access.log", "a") as myfile:
         myfile.write(text)
@@ -247,59 +235,66 @@ def GET(time,uri, data):
     if len(ext_list) > 1:
         extension = ext_list[1]
     flag = 0
-    try:
-        if extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3":
-            flag = 1
-    except(UnboundLocalError):
-        flag = 0
-    p = 0
-    global st_code
-    for i in k:
-        if("If-Modified-Since" in i):
-            print(i)
-            p = res_ifs(i[24:43], filename)
-    if(p):
-        if os.path.exists(filename):
-            responseline = response_line(304)
-            st_code = 304
-            response_body = ""
-            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-            l = len(response_body)
-            responseheaders = response_headers(time,l,filename)
-            # logtext = '%s - - [%s] "GET %s HTTP/1.1" 304 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
-        else:
-            responseline = response_line(404)
-            st_code = 404
-            response_body = "<h1>404 Not Found</h1>\n"
-            l = len(response_body)
-            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-            # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
-            responseheaders = response_headers(time,l)
-
-    else:
-        if os.path.exists(filename):
-            print("Found file, giving 200")
-            if flag == 1:
-                with open(filename, 'rb') as f:
-                    response_body = f.read()
+    if extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3" or extension == "html" or extension == "txt":
+        try:
+            if extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3":
+                flag = 1
+        except(UnboundLocalError):
+            flag = 0
+        p = 0
+        global st_code
+        for i in k:
+            if("If-Modified-Since" in i):
+                print(i)
+                p = res_ifs(i[24:43], filename)
+        if(p):
+            if os.path.exists(filename):
+                responseline = response_line(304)
+                st_code = 304
+                response_body = ""
+                date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+                l = len(response_body)
+                responseheaders = response_headers(time,l,filename)
+                # logtext = '%s - - [%s] "GET %s HTTP/1.1" 304 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
             else:
-                with open(filename, 'r') as f:
-                    response_body = f.read()
-            responseline = response_line(200)
-            st_code = 200
-            l = len(response_body)
-            # logtext = '%s - - [%s] "GET %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
-            date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
-            responseheaders = response_headers(time,l, filename, extension)
-        else:
-            responseline = response_line(404)
-            st_code = 404
-            response_body = "<h1>404 Not Found</h1>\r\n"
-            l = len(response_body)
-            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-            # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
-            responseheaders = response_headers(time,l)
+                responseline = response_line(404)
+                st_code = 404
+                response_body = "<h1>404 Not Found</h1>\n"
+                l = len(response_body)
+                date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+                # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+                responseheaders = response_headers(time,l)
 
+        else:
+            if os.path.exists(filename):
+                print("Found file, giving 200")
+                if flag == 1:
+                    with open(filename, 'rb') as f:
+                        response_body = f.read()
+                else:
+                    with open(filename, 'r') as f:
+                        response_body = f.read()
+                responseline = response_line(200)
+                st_code = 200
+                l = len(response_body)
+                # logtext = '%s - - [%s] "GET %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
+                date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
+                responseheaders = response_headers(time,l, filename, extension)
+            else:
+                responseline = response_line(404)
+                st_code = 404
+                response_body = "<h1>404 Not Found</h1>\r\n"
+                l = len(response_body)
+                date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+                # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+                responseheaders = response_headers(time,l)
+    else:
+        responseline = response_line(415)
+        st_code = 415
+        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
+        l = len(response_body)
+        date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
+        responseheaders = response_headers(time,l)
     blank_line = "\r\n"
     return responseline, responseheaders, response_body
     
@@ -307,35 +302,49 @@ def POST(time,uri, data):
     global st_code
     lines = data.split('\r\n')
     filename = uri.strip('/')
-    if os.path.exists(filename):
-        responseline = response_line(200)
-        st_code = 200
-        l = len(lines[-1])
-        print('\n')
-        print(lines[-1])
-        print('\n')
-        if(l > max_payload):
-            responseline, responseheaders, response_body = HTTP_413_handler(time)
+    k = data.split("\r\n")
+    ext_list = filename.split('.')
+    if len(ext_list) > 1:
+        extension = ext_list[1]
+    if extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3" or extension == "html" or extension == "txt":
+        if os.path.exists(filename):
+            responseline = response_line(200)
+            st_code = 200
+            l = len(lines[-1])
+            print('\n')
+            print(lines[-1])
+            print('\n')
+            if(l > max_payload):
+                responseline, responseheaders, response_body = HTTP_413_handler(time)
+                date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
+                logtext = '%s - - [%s] "POST %s HTTP/1.1" 413 %s "-" "-"\r\n' % (host, date, filename, (os.stat(filename)).st_size)
+                with open("access.log", "a") as myfile:
+                    myfile.write(logtext)
+                return responseline, responseheaders, response_body
+            responseheaders = response_headers(time,l+1)
+            blank_line = "\r\n"
+            response_body = lines[-1]
             date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
-            logtext = '%s - - [%s] "POST %s HTTP/1.1" 413 %s "-" "-"\r\n' % (host, date, filename, (os.stat(filename)).st_size)
-            with open("access.log", "a") as myfile:
-                myfile.write(logtext)
-            return responseline, responseheaders, response_body
-        responseheaders = response_headers(time,l+1)
-        blank_line = "\r\n"
-        response_body = lines[-1]
-        date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
-        logtext = '%s - - [%s] "POST %s HTTP/1.1" 200 %s "-" "-" %s\r\n' % (host, date, filename, (os.stat(filename)).st_size, lines[-1])
-        
+            logtext = '%s - - [%s] "POST %s HTTP/1.1" 200 %s "-" "-" %s\r\n' % (host, date, filename, (os.stat(filename)).st_size, lines[-1])
+            
+        else:
+            responseline = response_line(404)
+            st_code = 404
+            response_body = "<h1>404 Not Found</h1>\n"
+            l = len(response_body)
+            date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
+            # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+            responseheaders = response_headers(time,l)
+            logtext = '%s - - [%s] "POST %s HTTP/1.1" 404 0 "-" "-"\r\n' % (host, date, filename)
     else:
-        responseline = response_line(404)
-        st_code = 404
-        response_body = "<h1>404 Not Found</h1>\n"
+        responseline = response_line(415)
+        st_code = 415
+        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
         l = len(response_body)
-        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-        # logtext = '%s - - [%s] "GET %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+        date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
         responseheaders = response_headers(time,l)
-        logtext = '%s - - [%s] "POST %s HTTP/1.1" 404 0 "-" "-"\r\n' % (host, date, filename)
+        logtext = '%s - - [%s] "POST %s HTTP/1.1" 415 0 "-" "-"\r\n' % (host, date, filename)
+
     with open("access.log", "a") as myfile:
         myfile.write(logtext)
     return responseline, responseheaders, response_body
@@ -343,27 +352,39 @@ def POST(time,uri, data):
 def HEAD(time,uri, data):
     global st_code
     print("Inside Head")
-    filename = uri.strip('/') # remove the slash from URI
-    if os.path.exists(filename):
-        print("File exists")
-        responseline = response_line(200)
-        st_code = 200
-        with open(filename) as f:
-            response_body = f.read()
-        l = len(response_body)
-        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-        # logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
-        date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
-        responseheaders = response_headers(time,l)
-        
+    filename = uri.strip('/')
+    k = data.split("\r\n")
+    ext_list = filename.split('.')
+    if len(ext_list) > 1:
+        extension = ext_list[1]
+    if extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3" or extension == "html" or extension == "txt":
+        if os.path.exists(filename):
+            print("File exists")
+            responseline = response_line(200)
+            st_code = 200
+            with open(filename) as f:
+                response_body = f.read()
+            l = len(response_body)
+            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+            # logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
+            date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
+            responseheaders = response_headers(time,l)
+            
+        else:
+            print("File does not exist")
+            responseline = response_line(404)
+            st_code = 404
+            response_body = "<h1>404 Not Found</h1>\n"
+            l = len(response_body)
+            date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
+            # logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+            responseheaders = response_headers(time,l)
     else:
-        print("File does not exist")
-        responseline = response_line(404)
-        st_code = 404
-        response_body = "<h1>404 Not Found</h1>\n"
+        responseline = response_line(415)
+        st_code = 415
+        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
         l = len(response_body)
-        date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
-        # logtext = '%s - - [%s] "HEAD %s HTTP/1.1" 404 0 "-" "-" \r\n' % (host, date, filename)
+        date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
         responseheaders = response_headers(time,l)
     blank_line = "\r\n"
     return responseline, responseheaders, response_body
@@ -371,83 +392,108 @@ def HEAD(time,uri, data):
 def PUT(time,uri, data):
     global st_code
     data1 = data.split('\r\n')
+    filename = uri.strip('/')
+    k = data.split("\r\n")
+    ext_list = filename.split('.')
+    if len(ext_list) > 1:
+        extension = ext_list[1]
     k = 0
-    for i in data1:
-        if("Content-Length" in i):
-            k += 1
-            break
-    if(k == 1):
-        data = data.split('\r\n')
-        print(data)
-        i = 0
-        while(data[i] != '' and i < len(data)):
-            if(i < len(data) - 2 and data[i+1] == '' and data[i+2] == ''):
-                i += 3
+    if extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3" or extension == "html" or extension == "txt":
+        for i in data1:
+            if("Content-Length" in i):
+                k += 1
                 break
-            i += 1
-        if(i < len(data) and data[i] == ''):
-            i += 1
-        str = ""
-        while(i < len(data)):
-            str += data[i]
-            if(i != len(data) - 1):
-                str += '\r\n'
-            i += 1
-        print(len(str))
-        if(len(str) > max_payload):
-            responseline, responseheaders, response_body = HTTP_413_handler(time)
+        if(k == 1):
+            data = data.split('\r\n')
+            print(data)
+            i = 0
+            while(data[i] != '' and i < len(data)):
+                if(i < len(data) - 2 and data[i+1] == '' and data[i+2] == ''):
+                    i += 3
+                    break
+                i += 1
+            if(i < len(data) and data[i] == ''):
+                i += 1
+            str = ""
+            while(i < len(data)):
+                str += data[i]
+                if(i != len(data) - 1):
+                    str += '\r\n'
+                i += 1
+            print(len(str))
+            if(len(str) > max_payload):
+                responseline, responseheaders, response_body = HTTP_413_handler(time)
+                return responseline, responseheaders, response_body
+            else:
+                filename = uri.strip('/')
+                if(os.path.isfile(filename) == False):
+                    f = open(filename,"w+")
+                    f.write(str)
+                    response_body = ""
+                    if(f):
+                        response_body += "<h1>The file was created.</h1>\n"
+                    responseline = response_line(201)
+                    st_code = 201
+                    responseheaders = response_headers(time,len(response_body))
+                elif(len(data) == 0):
+                    f = open(filename,"w+")
+                    f.write(str)
+                    responseline = response_line(204)
+                    st_code = 204
+                    response_body = ""
+                    l = len(response_body)
+                    responseheaders = response_headers(time,l)
+                else:
+                    f = open(filename,"w+")
+                    f.write(str)
+                    responseline = response_line(200)
+                    st_code = 200
+                    response_body = ""
+                    responseheaders = response_headers(time,len(response_body))
+
+            """ 204 No Content Status Code Pending """
+            blank_line = "\r\n"
             return responseline, responseheaders, response_body
         else:
-            filename = uri.strip('/')
-            if(os.path.isfile(filename) == False):
-                f = open(filename,"w+")
-                f.write(str)
-                response_body = ""
-                if(f):
-                    response_body += "<h1>The file was created.</h1>\n"
-                responseline = response_line(201)
-                st_code = 201
-                responseheaders = response_headers(time,len(response_body))
-            elif(len(data) == 0):
-                f = open(filename,"w+")
-                f.write(str)
-                responseline = response_line(204)
-                st_code = 204
-                response_body = ""
-                l = len(response_body)
-                responseheaders = response_headers(time,l)
-            else:
-                f = open(filename,"w+")
-                f.write(str)
-                responseline = response_line(200)
-                st_code = 200
-                response_body = ""
-                responseheaders = response_headers(time,len(response_body))
-
-        """ 204 No Content Status Code Pending """
-        blank_line = "\r\n"
-        return responseline, responseheaders, response_body
+            responseline, responseheaders, response_body = HTTP_411_handler(time)
+            return responseline, responseheaders, response_body
     else:
-        responseline, responseheaders, response_body = HTTP_411_handler(time)
+        responseline = response_line(415)
+        st_code = 415
+        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
+        l = len(response_body)
+        date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
+        responseheaders = response_headers(time,l)
         return responseline, responseheaders, response_body
 
 def DELETE(time, uri):
     global st_code
     filename = uri.strip('/')
-    if(os.path.isfile(filename) == False):
-        """ Not Sure about 202"""
-        responseline = response_line(202)
-        st_code = 202
-        response_body = ""
-        responseheaders = response_headers(time,len(response_body))
+    ext_list = filename.split('.')
+    if len(ext_list) > 1:
+        extension = ext_list[1]
+    if(extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3" or extension == "html" or extension == "txt"):
+        filename = uri.strip('/')
+        if(os.path.isfile(filename) == False):
+            """ Not Sure about 202"""
+            responseline = response_line(202)
+            st_code = 202
+            response_body = ""
+            responseheaders = response_headers(time,len(response_body))
+        else:
+            os.remove(filename)
+            responseline = response_line(200)
+            st_code = 200
+            response_body = "<html><body><h1>File deleted.</h1></body></html>"
+            responseheaders = response_headers(time,len(response_body))
+    
     else:
-        os.remove(filename)
-        responseline = response_line(200)
-        st_code = 200
-        response_body = "<html><body><h1>File deleted.</h1></body></html>"
-        responseheaders = response_headers(time,len(response_body))
-    blank_line = "\r\n"
-    """ 204 No Content Status Code Pending """
+        responseline = response_line(415)
+        st_code = 415
+        response_body = "<h1>415 Unsupported Media Type</h1>\r\n"
+        l = len(response_body)
+        date = "%s +0530" % (time.strftime("%d/%b/%Y:%H:%M:%S"))
+        responseheaders = response_headers(time,l)
     return responseline, responseheaders, response_body
 
 def HTTPRequest(data):
