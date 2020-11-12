@@ -63,13 +63,13 @@ def response_line(status_code):
     reason = status_codes[status_code]
     return "HTTP/1.1 %s %s\r\n" % (status_code, reason)
 
-def response_headers(time, l = None,filename = None, extension = None):
+def response_headers(time1, l = None,filename = None, extension = None):
     header = ""
     for h in headers:
         if(h == 'Content-Length'):
             header += "%s: %s\r\n" % (h, l)
         elif(h == 'Date'):
-            header += "%s: %s, %s GMT" % (h, time.strftime("%A")[:3], time.strftime("%d %b %Y %H:%M:%S"))
+            header += "%s: %s, %s GMT" % (h, time1.strftime("%A")[:3], time.strftime("%d %b %Y %H:%M:%S"))
         elif(h == 'Last-Modified'):
             if(filename != None):
                 k = time.ctime(os.path.getmtime(filename))
@@ -452,13 +452,13 @@ def handle_request(data):
             responseline, responseheaders, response_body = HTTP_400_Handler(time)
         else:
             responseline, responseheaders, response_body = GET(time,uri, data)
-        logtext(uri.strip('/'), st_code, method)
+        logtext(time, uri.strip('/'), st_code, method)
     elif(method == 'HEAD'):
         if(uri is None or http_version != "HTTP/1.1"):
             responseline, responseheaders, response_body = HTTP_400_Handler(time)
         else:
             responseline, responseheaders, response_body = HEAD(time,uri, data)
-        logtext(uri.strip('/'), st_code, method)
+        logtext(time, uri.strip('/'), st_code, method)
     elif(method == 'POST'):
         if(uri is None or http_version != "HTTP/1.1"):
             responseline, responseheaders, response_body = HTTP_400_Handler(time)
@@ -475,7 +475,7 @@ def handle_request(data):
             responseline, responseheaders, response_body = HTTP_400_Handler(time)
         else:
             responseline, responseheaders, response_body = DELETE(time,uri)
-        logtext(uri.strip('/'), st_code, method)
+        logtext(time, uri.strip('/'), st_code, method)
     else:
         responseline, responseheaders, response_body = HTTP_501_handler(time,uri)
         logtext(time,uri.strip('/'), st_code, method)
