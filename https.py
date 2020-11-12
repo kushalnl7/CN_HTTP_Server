@@ -114,8 +114,12 @@ def uri_len(uri):
 
 def getdate(s):
     k = []
+    # Wed, 4 Nov 2020 08:48:00 GMT
     p = s.split(" ")
+    print(p)
     for i in p:
+        print(i)
+        i = i.strip(',')
         if(len(i) == 3):
             datetime_object = datetime.datetime.strptime(i, "%b")
             m_num = datetime_object.month
@@ -127,6 +131,7 @@ def getdate(s):
             k.append(int(p1[2]))
         else:
             k.append(int(i))
+        print(k)
     return k
 
 def res_ifs(date, filename):
@@ -135,8 +140,12 @@ def res_ifs(date, filename):
     #     if(h == "Last-Modified"):
     #         M = getdate((headers[h])[5:25])
     #         break
+    #Wed 4 Nov 2020 08:48:00 GMT
     k = time.ctime(os.path.getmtime(filename))
-    s = ""
+    s = ""# for h in headers:
+    #     if(h == "Last-Modified"):
+    #         M = getdate((headers[h])[5:25])
+    #         break
     if(int(k[9]) < 10):
         s += "0" + k[9]
     else:
@@ -247,7 +256,8 @@ def GET(time,uri, data):
     global st_code
     for i in k:
         if("If-Modified-Since" in i):
-            p = res_ifs(i[24:44], filename)
+            print(i)
+            p = res_ifs(i[24:43], filename)
     if(p):
         if os.path.exists(filename):
             responseline = response_line(304)
@@ -332,8 +342,10 @@ def POST(time,uri, data):
     
 def HEAD(time,uri, data):
     global st_code
+    print("Inside Head")
     filename = uri.strip('/') # remove the slash from URI
     if os.path.exists(filename):
+        print("File exists")
         responseline = response_line(200)
         st_code = 200
         with open(filename) as f:
@@ -345,7 +357,9 @@ def HEAD(time,uri, data):
         responseheaders = response_headers(time,l)
         
     else:
+        print("File does not exist")
         responseline = response_line(404)
+        st_code = 404
         response_body = "<h1>404 Not Found</h1>\n"
         l = len(response_body)
         date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
@@ -417,7 +431,7 @@ def PUT(time,uri, data):
         responseline, responseheaders, response_body = HTTP_411_handler(time)
         return responseline, responseheaders, response_body
 
-def DELETE(uri):
+def DELETE(time, uri):
     global st_code
     filename = uri.strip('/')
     if(os.path.isfile(filename) == False):
@@ -460,9 +474,12 @@ def handle_request(data):
     # time.sleep(10)
     time = datetime.datetime.now()
     method, uri, http_version = HTTPRequest(data)
+    print(uri)
     # print(method, uri, http_version)
     if(uri_len(uri.strip('/')) == 1):
-        response = HTTP_414_handler(time)
+        print("Inside this function")
+        responseline, responseheaders, response_body = HTTP_414_handler(time)
+        print("Inside this function")
     elif(method == 'GET'):
         if(uri is None or http_version != "HTTP/1.1"):
             responseline, responseheaders, response_body = HTTP_400_Handler(time)
