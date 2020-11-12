@@ -381,11 +381,14 @@ def PUT(uri, data):
             break
     if(k == 1):
         data = data.split('\r\n')
+        print(data)
         i = 0
         while(data[i] != '' and i < len(data)):
             if(data[i+1] == '' and data[i+2] == '' and i < len(data) - 2):
                 i += 3
                 break
+            i += 1
+        if(data[i] == ''):
             i += 1
         str = ""
         while(i < len(data)):
@@ -393,7 +396,8 @@ def PUT(uri, data):
             if(i != len(data) - 1):
                 str += '\r\n'
             i += 1
-        if(len(data) > max_payload):
+        print(len(str))
+        if(len(str) > max_payload):
             response = HTTP_413_handler()
             return response
         else:
