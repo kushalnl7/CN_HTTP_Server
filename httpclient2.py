@@ -55,7 +55,7 @@ def stage2():
     #PUT Status Codes
     requests.put("http://localhost:" + port + "/newfile.txt", data=filecontent)
     requests.put("http://localhost:" + port + "/newfile.txt", data=filecontent)
-    requests.put("http://localhost:" + port + "/klfile.txt", data=filecontent)
+    # requests.put("http://localhost:" + port + "/klfile.txt", data=filecontent)
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect((serverName,serverPort))
     data = ""
