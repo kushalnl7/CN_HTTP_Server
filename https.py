@@ -63,7 +63,7 @@ def response_line(status_code):
     reason = status_codes[status_code]
     return "HTTP/1.1 %s %s\r\n" % (status_code, reason)
 
-def response_headers(l = None,filename = None):
+def response_headers(l = None,filename = None, extension = None):
     header = ""
     for h in headers:
         if(h == 'Content-Length'):
@@ -81,6 +81,21 @@ def response_headers(l = None,filename = None):
         elif(h == 'Set-Cokkie'):
             for k in cokkies:
                 header += "%s: %s=%s\r\n" % (h, k, cokkies[k])
+        elif(h == 'Content-Type'):
+            if extension == "html":
+                header += "%s: %s\r\n" % (h, 'text/html')  
+            elif extension == "png":
+                header += "%s: %s\r\n" % (h, 'image/png')
+            elif extension == "txt":
+                header += "%s: %s\r\n" % (h, 'text/plain')
+            elif extension == "jpg":
+                header += "%s: %s\r\n" % (h, 'image/jpg')
+            elif extension == "jpeg":
+                header += "%s: %s\r\n" % (h, 'image/jpeg')
+            elif extension == "mp3":
+                header += "%s: %s\r\n" % (h, 'audio/mpeg')
+            elif extension == "mp4":
+                header += "%s: %s\r\n" % (h, 'video/mp4')
         else:
             header += "%s: %s\r\n" % (h, headers[h])
     return header
@@ -257,6 +272,15 @@ def GET(uri, data):
     print(uri)
     filename = uri.strip('/')
     k = data.split("\r\n")
+    ext_list = filename.split('.')
+    if len(ext_list) > 1:
+        extension = ext_list[1]
+    flag = 0
+    try:
+        if extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3":
+            flag = 1
+    except(UnboundLocalError):
+        flag = 0
     p = 0
     global st_code
     for i in k:
@@ -283,14 +307,18 @@ def GET(uri, data):
     else:
         if os.path.exists(filename):
             print("Found file, giving 200")
+            if flag == 1:
+                with open(filename, 'rb') as f:
+                    response_body = f.read()
+            else:
+                with open(filename, 'r') as f:
+                    response_body = f.read()
             responseline = response_line(200)
             st_code = 200
-            with open(filename) as f:
-                response_body = f.read()
             l = len(response_body)
             # logtext = '%s - - [%s] "GET %s HTTP/1.1" 200 %s "-" "-" \r\n' % (host, date, filename, (os.stat(filename)).st_size)
             date = "%s, %s GMT" % (x.strftime("%A")[:3], x.strftime("%d %b %Y %H:%M:%S"))
-            responseheaders = response_headers(l, filename)
+            responseheaders = response_headers(l, filename, extension)
         else:
             responseline = response_line(404)
             st_code = 404
@@ -301,15 +329,7 @@ def GET(uri, data):
             responseheaders = response_headers(l)
 
     blank_line = "\r\n"
-    # with open("access.log", "a") as myfile:
-    #     myfile.write(logtext)
-    return "%s%s%s%s" % (
-            # blank_line,
-            responseline, 
-            responseheaders, 
-            blank_line, 
-            response_body
-        )
+    return responseline, responseheaders, response_body
     
 def POST(uri, data):
     global st_code
@@ -484,6 +504,7 @@ def handle_request(data):
     data = data.decode()
     print(data)
     global response
+    global body
     global st_code
     # time.sleep(10)
     method, uri, http_version = HTTPRequest(data)
@@ -494,7 +515,7 @@ def handle_request(data):
         if(uri is None or http_version != "HTTP/1.1"):
             response = HTTP_400_Handler()
         else:
-            response = GET(uri, data)
+            responseline, responseheaders, response_body = GET(uri, data)
         logtext(uri.strip('/'), st_code, method)
     elif(method == 'HEAD'):
         if(uri is None or http_version != "HTTP/1.1"):
@@ -522,8 +543,12 @@ def handle_request(data):
     else:
         response = HTTP_501_handler(uri)
         logtext(uri.strip('/'), st_code, method)
-    
-
+    # response_h = response_l + response_h + blank_line
+    response = responseline + responseheaders + '\r\n'
+    if type(response_body) == str:
+        body = bytes(response_body,'utf-8')
+    else:
+        body = response_body
     
 
 def sleep():
@@ -541,6 +566,7 @@ s.bind((host, port))
 s.listen(5)
 print("Listening at", s.getsockname())
 response = None
+body = None
 st_code = None
 while True:
     # global conn
@@ -559,10 +585,11 @@ while True:
     t1.start()
     end = time.time()
     print("No. of active connections : ", threading.active_count())
-    while(response is None):
+    while(response is None or body is None):
         continue
     if(end - start < max_time):
         conn.sendall(bytes(response, 'utf-8'))
+        conn.sendall(body)
     else:
         response = HTTP_408_Handler()
     response = None
