@@ -131,7 +131,9 @@ def res_ifs(date, filename):
 def logtext(filename, st_code, method):
     date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
     # print(st_code)
-    if(st_code == 200 or st_code == 201 or st_code == 304 or st_code == 204):
+    if(method == "DELETE" and st_code == 200):
+        text = '%s - - [%s] "%s %s HTTP/1.1" %s 0 "-" "-" \r\n' % (host, date, method, filename, st_code)
+    elif(st_code == 200 or st_code == 201 or st_code == 304 or st_code == 204):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s %s "-" "-" \r\n' % (host, date, method, filename, st_code, (os.stat(filename)).st_size)
     elif(st_code == 404 or st_code == 501 or st_code == 400 or st_code == 501 or st_code == 414 or st_code == 408 or st_code == 411 or st_code == 413):
         text = '%s - - [%s] "%s %s HTTP/1.1" %s 0 "-" "-" \r\n' % (host, date, method, filename, st_code)
@@ -324,10 +326,7 @@ def POST(uri, data):
         return response
     responseheaders = response_headers(l+1)
     blank_line = "\r\n"
-    k = lines[-1].split('&')
-    response_body = ""
-    for i in k:
-        response_body += str(i) + "\r\n"
+    response_body = lines[-1]
     date = "%s +0530" % (x.strftime("%d/%b/%Y:%H:%M:%S"))
     logtext = '%s - - [%s] "POST %s HTTP/1.1" 200 %s "-" "-" %s\r\n' % (host, date, filename, (os.stat(filename)).st_size, lines[-1])
     with open("access.log", "a") as myfile:
@@ -533,6 +532,7 @@ while True:
     conn, addr = s.accept()
     print("Connected by", addr)
     data = (conn.recv(1024))
+    print(data)
     # print('\n\n')
     # print(data)
     # print('\n\n')
