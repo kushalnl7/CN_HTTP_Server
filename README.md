@@ -32,32 +32,15 @@
 ### Browser screenshots for different requests: 
 ![BeFunky-collage](https://user-images.githubusercontent.com/64639902/218307720-7d2ad441-3ae6-4651-8799-a89af34d4745.jpg)
 
-<table>
-  <tr>
-    <td> <img alt="Light" src="Screenshots/404.png" width="45%"></td>
+### POSTMAN screenshots for requests with different status codes as responses:
+404 Not Found| 408 Request Timeout
+-----|------
+<img alt="Light" src="Screenshots/404.png" width="100%"> | <img alt="Light" src="Screenshots/408.png" width="100%">
 
-    <td><img alt="Dark" src="Screenshots/408.png" width="45%"></td>
-   </tr> 
-   <tr>
-      <td><img src="./Scshot/cab_arrived.png" alt="3" width = 360px height = 640px></td>
+413 Request Entity Too Large|501 Not Implemented
+-----|------
+<img alt="Light" src="Screenshots/413.png" width="100%"> | <img alt="Dark" src="Screenshots/501.png" width="100%">
 
-      <td><img src="./Scshot/trip_end.png" align="right" alt="4" width = 360px height = 640px>
-  </td>
-  </tr>
-</table>
-
-<p align="center">
-  <img alt="Light" src="Screenshots/404.png" width="45%">
-&nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="Screenshots/408.png" width="45%">
-</p>
-<p align="center">
-  <img alt="Light" src="Screenshots/413.png" width="45%">
-&nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="Screenshots/501.png" width="45%">
-</p>
-<p align="center">
-  <img alt="Light" src="Screenshots/FileDeleted.png" width="45%">
-&nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="Screenshots/415.png" width="45%">
-</p>
+DELETE Request|415 Unsupported Media Type
+-----|------
+<img alt="Light" src="Screenshots/FileDeleted.png" width="100%"> | <img alt="Dark" src="Screenshots/415.png" width="100%">
