@@ -28,10 +28,11 @@
       4. To view jpeg image file on browser, go to [http://127.0.0.1:12000/pic.jpeg](http://127.0.0.1:12000/pic.jpeg) 
       5. To view mp3 song file on browser, go to [http://127.0.0.1:12000/song.mp3](http://127.0.0.1:12000/song.mp3) 
       6. To view mp4 video file on browser, go to [http://127.0.0.1:12000/video.mp4](http://127.0.0.1:12000/video.mp4)
-
+##
 ### Browser screenshots for different requests: 
 ![BeFunky-collage](https://user-images.githubusercontent.com/64639902/218307720-7d2ad441-3ae6-4651-8799-a89af34d4745.jpg)
 
+##
 ### POSTMAN screenshots for requests with different status codes as responses:
 404 Not Found| 408 Request Timeout
 -----|------
