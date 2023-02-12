@@ -47,4 +47,4 @@ DELETE Request|415 Unsupported Media Type
 <img alt="Light" src="Screenshots/FileDeleted.png" width="100%"> | <img alt="Dark" src="Screenshots/415.png" width="100%">
 
 
-If you found the repository helpful, be sure to star it!
+### If you found the repository helpful, be sure to star it!
