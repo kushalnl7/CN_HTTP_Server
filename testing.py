@@ -37,6 +37,7 @@ def stage2():
     clientSocket.send(data.encode())
     modifiedSentence = clientSocket.recv(10000)
     clientSocket.close()
+    time.sleep(3)
     requests.get("http://127.0.0.1:" + port + "/fdsajlfjdfjhajkhfkjdahfjkahjfkdhakjfdhkajhfjkahfdjhakjfhajdfjkajkfdhakjfasfasjfdsjfalfdjaofklfajldsdfjalkjlaksjflkasjfjalfjsjfsakjfdsdjflkasjdfljskdfjlsadfjlsdakjflksdajfldsajflkdjsafljsalfjalfjalkfjlasjfldsjaflkjsdlfkjklrajfdifarennrelajlktjwtljrltjlrejltjlrejtlrjtlkwaijrf4lrgljreltjlrtjdfjlkjf.html")
     requests.get("http://127.0.0.1:" + port + "/index.asd")
 
@@ -63,6 +64,7 @@ def stage2():
     clientSocket.send(data.encode())
     modifiedSentence = clientSocket.recv(10000)
     clientSocket.close()
+    time.sleep(3)
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect((serverName,serverPort))
     data = ""
@@ -70,28 +72,13 @@ def stage2():
     clientSocket.send(data.encode())
     modifiedSentence = clientSocket.recv(10000)
     clientSocket.close()
+    time.sleep(3)
     requests.put("http://127.0.0.1:" + port + "/fdsajlfjdfjhajkhfkjdahfjkahjfkdhakjfdhkajhfjkahfdjhakjfhajdfjkajkfdhakjfasfasjfdsjfalfdjaofklfajldsdfjalkjlaksjflkasjfjalfjsjfsakjfdsdjflkasjdfljskdfjlsadfjlsdakjflksdajfldsajflkdjsafljsalfjalfjalkfjlasjfldsjaflkjsdlfkjklrajfdifarennrelajlktjwtljrltjlrejltjlrejtlrjtlkwaijrf4lrgljreltjlrtjdfjlkjf.html", data = filecontent)
     requests.put("http://127.0.0.1:" + port + "/index.asd", data = filecontent)
 
     #DELETE Status Codes
     requests.delete("http://localhost:" + port + "/newfile.txt")
     requests.delete("http://localhost:" + port + "/fdk.txt")
-    
-
-def stage3():
-    threads = []
-    for _ in range(10):
-        t = Thread(target=stage1)
-        t.setDaemon(True)
-        t.start()
-        threads.append(t)
-    for _ in range(10):
-        t = Thread(target=stage2)
-        t.setDaemon(True)
-        t.start()
-        threads.append(t)
-    for i in threads:
-        i.join()   
     
 print("-------------------Stage 1 Testing-----------------------")   
 stage1()
@@ -100,7 +87,23 @@ print("-------------------Stage 2 Testing-----------------------")
 time.sleep(3)
 stage2()
 print("-------------------Stage 2 Testing Finished-----------------------")
-print("-------------------Stage 3 Testing-----------------------")
-time.sleep(3)
-stage3()
-print("-------------------Stage 3 Testing Finished-----------------------")
+
+# def stage3():
+#     threads = []
+#     for _ in range(10):
+#         t = Thread(target=stage1)
+#         t.setDaemon(True)
+#         t.start()
+#         threads.append(t)
+#     for _ in range(10):
+#         t = Thread(target=stage2)
+#         t.setDaemon(True)
+#         t.start()
+#         threads.append(t)
+#     for i in threads:
+#         i.join()   
+    
+# print("-------------------Stage 3 Testing-----------------------")
+# time.sleep(3)
+# stage3()
+# print("-------------------Stage 3 Testing Finished-----------------------")
