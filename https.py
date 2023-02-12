@@ -444,7 +444,7 @@ def PUT(time,uri, data):
     k = 0
     if extension == "png" or extension == "jpg" or extension == "jpeg" or extension =="mp4" or extension == "mp3" or extension == "html" or extension == "txt":
         for i in data1:
-            if("Content-Length" in i):
+            if("Content-Length" in i): 
                 k += 1
                 break
         if(k == 1):
