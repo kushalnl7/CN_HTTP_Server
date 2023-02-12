@@ -1,5 +1,7 @@
 # HTTP_Server_Computer_Networks
 
+### If you find the repository helpful, don’t forget to ⭐ it! 
+
 ## To Run the project:
 1.  The main server file is  **https.py**
 2. To run the server file: `python3 https.py 12000` (Any Port number can be given by user, we are assuming it to be 12000)
@@ -45,6 +47,3 @@
 DELETE Request|415 Unsupported Media Type
 -----|------
 <img alt="Light" src="Screenshots/FileDeleted.png" width="100%"> | <img alt="Dark" src="Screenshots/415.png" width="100%">
-
-
-### If you found the repository helpful, be sure to star it!
