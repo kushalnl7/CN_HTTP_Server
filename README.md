@@ -32,6 +32,19 @@
 ### Browser screenshots for different requests: 
 ![BeFunky-collage](https://user-images.githubusercontent.com/64639902/218307720-7d2ad441-3ae6-4651-8799-a89af34d4745.jpg)
 
+<table>
+  <tr>
+    <td> <img alt="Light" src="Screenshots/404.png" width="45%"></td>
+
+    <td><img alt="Dark" src="Screenshots/408.png" width="45%"></td>
+   </tr> 
+   <tr>
+      <td><img src="./Scshot/cab_arrived.png" alt="3" width = 360px height = 640px></td>
+
+      <td><img src="./Scshot/trip_end.png" align="right" alt="4" width = 360px height = 640px>
+  </td>
+  </tr>
+</table>
 
 <p align="center">
   <img alt="Light" src="Screenshots/404.png" width="45%">
@@ -41,10 +54,10 @@
 <p align="center">
   <img alt="Light" src="Screenshots/413.png" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="Screenshots/FileDeleted.png" width="45%">
+  <img alt="Dark" src="Screenshots/501.png" width="45%">
 </p>
 <p align="center">
-  <img alt="Light" src="Screenshots/501.png" width="45%">
+  <img alt="Light" src="Screenshots/FileDeleted.png" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="Dark" src="Screenshots/415.png" width="45%">
 </p>
